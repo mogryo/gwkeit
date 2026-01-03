@@ -5,6 +5,10 @@ import (
 	"database/sql"
 	"embed"
 	_ "embed"
+	"errors"
+	"io/fs"
+	"os"
+	"path"
 
 	"github.com/gwkeit/appui"
 	"github.com/gwkeit/repository"
@@ -20,7 +24,17 @@ var embedMigrations embed.FS
 func main() {
 	ctx := context.Background()
 
-	db, err := sql.Open("sqlite", "./gwkeit.db")
+	homeDir, _ := os.UserHomeDir()
+	dataSourceName := path.Join(homeDir, ".gwkeit", "gwkeit.db")
+
+	// Attempt to create the .gwkeit directory.
+	// sql.Open does not immediately throw an error if such a path does not exist.
+	err := os.Mkdir(path.Dir(dataSourceName), 0755)
+	if err != nil && !errors.Is(err, fs.ErrExist) {
+		panic(err)
+	}
+
+	db, err := sql.Open("sqlite", dataSourceName)
 	if err != nil {
 		panic(err)
 	}
