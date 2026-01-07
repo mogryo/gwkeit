@@ -11,13 +11,9 @@ type Snippet struct {
 }
 
 type SnippetsTag struct {
+	ID        int64
 	SnippetID int64
 	TagID     int64
-}
-
-type SnippetsUrl struct {
-	SnippetID int64
-	UrlID     int64
 }
 
 type Tag struct {
@@ -26,6 +22,7 @@ type Tag struct {
 }
 
 type Url struct {
-	ID  int64
-	Url string
+	ID        int64
+	Url       string
+	SnippetID int64
 }

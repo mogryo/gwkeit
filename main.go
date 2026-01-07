@@ -10,7 +10,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/gwkeit/appui"
+	"github.com/gwkeit/pages"
 	"github.com/gwkeit/repository"
 	"github.com/pressly/goose/v3"
 	_ "modernc.org/sqlite"
@@ -57,9 +57,10 @@ func main() {
 	}(db)
 
 	r := repository.New(db, queries)
-	appUI := appui.New(ctx, r)
-	err = appUI.Run()
+	err = pages.Run(ctx, r)
 	if err != nil {
 		panic(err)
 	}
+
+	ctx.Done()
 }

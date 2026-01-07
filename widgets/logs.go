@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gwkeit/utils"
+	"github.com/gwkeit/slicelib"
 	"github.com/rivo/tview"
 )
 
@@ -51,7 +51,7 @@ func (lw *LogsWidget) AddErrorLogs(logs []string) {
 	for _, log := range logs {
 		lw.addLog(log, ERROR_MESSAGE)
 	}
-	lw.View.SetText(strings.Join(utils.TakeLast(lw.list, 12), "\n"))
+	lw.View.SetText(strings.Join(slicelib.TakeLast(lw.list, 12), "\n"))
 }
 
 func (lw *LogsWidget) AddSuccessLogs(logs []string) {
@@ -63,7 +63,7 @@ func (lw *LogsWidget) AddSuccessLogs(logs []string) {
 	for _, log := range logs {
 		lw.addLog(log, SUCCESS_MESSAGE)
 	}
-	lw.View.SetText(strings.Join(utils.TakeLast(lw.list, 12), "\n"))
+	lw.View.SetText(strings.Join(slicelib.TakeLast(lw.list, 12), "\n"))
 }
 
 func (lw *LogsWidget) addLog(message string, logType LogType) {

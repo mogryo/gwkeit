@@ -24,6 +24,18 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.deleteSnippetTagsStmt, err = db.PrepareContext(ctx, deleteSnippetTags); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteSnippetTags: %w", err)
+	}
+	if q.deleteSnippetUrlsStmt, err = db.PrepareContext(ctx, deleteSnippetUrls); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteSnippetUrls: %w", err)
+	}
+	if q.deleteTagByTagStmt, err = db.PrepareContext(ctx, deleteTagByTag); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteTagByTag: %w", err)
+	}
+	if q.findSnippetDataByIdStmt, err = db.PrepareContext(ctx, findSnippetDataById); err != nil {
+		return nil, fmt.Errorf("error preparing query FindSnippetDataById: %w", err)
+	}
 	if q.findSnippetsByTagsStmt, err = db.PrepareContext(ctx, findSnippetsByTags); err != nil {
 		return nil, fmt.Errorf("error preparing query FindSnippetsByTags: %w", err)
 	}
@@ -54,14 +66,37 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.insertUrlStmt, err = db.PrepareContext(ctx, insertUrl); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertUrl: %w", err)
 	}
-	if q.insertUrlSnippetStmt, err = db.PrepareContext(ctx, insertUrlSnippet); err != nil {
-		return nil, fmt.Errorf("error preparing query InsertUrlSnippet: %w", err)
+	if q.snippetTagExistsStmt, err = db.PrepareContext(ctx, snippetTagExists); err != nil {
+		return nil, fmt.Errorf("error preparing query SnippetTagExists: %w", err)
+	}
+	if q.updateSnippetStmt, err = db.PrepareContext(ctx, updateSnippet); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateSnippet: %w", err)
 	}
 	return &q, nil
 }
 
 func (q *Queries) Close() error {
 	var err error
+	if q.deleteSnippetTagsStmt != nil {
+		if cerr := q.deleteSnippetTagsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteSnippetTagsStmt: %w", cerr)
+		}
+	}
+	if q.deleteSnippetUrlsStmt != nil {
+		if cerr := q.deleteSnippetUrlsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteSnippetUrlsStmt: %w", cerr)
+		}
+	}
+	if q.deleteTagByTagStmt != nil {
+		if cerr := q.deleteTagByTagStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteTagByTagStmt: %w", cerr)
+		}
+	}
+	if q.findSnippetDataByIdStmt != nil {
+		if cerr := q.findSnippetDataByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findSnippetDataByIdStmt: %w", cerr)
+		}
+	}
 	if q.findSnippetsByTagsStmt != nil {
 		if cerr := q.findSnippetsByTagsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findSnippetsByTagsStmt: %w", cerr)
@@ -112,9 +147,14 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing insertUrlStmt: %w", cerr)
 		}
 	}
-	if q.insertUrlSnippetStmt != nil {
-		if cerr := q.insertUrlSnippetStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing insertUrlSnippetStmt: %w", cerr)
+	if q.snippetTagExistsStmt != nil {
+		if cerr := q.snippetTagExistsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing snippetTagExistsStmt: %w", cerr)
+		}
+	}
+	if q.updateSnippetStmt != nil {
+		if cerr := q.updateSnippetStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateSnippetStmt: %w", cerr)
 		}
 	}
 	return err
@@ -156,6 +196,10 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                      DBTX
 	tx                      *sql.Tx
+	deleteSnippetTagsStmt   *sql.Stmt
+	deleteSnippetUrlsStmt   *sql.Stmt
+	deleteTagByTagStmt      *sql.Stmt
+	findSnippetDataByIdStmt *sql.Stmt
 	findSnippetsByTagsStmt  *sql.Stmt
 	findTagsBySnippetIdStmt *sql.Stmt
 	findTagsByTagStmt       *sql.Stmt
@@ -166,13 +210,18 @@ type Queries struct {
 	insertSnippetTagStmt    *sql.Stmt
 	insertTagStmt           *sql.Stmt
 	insertUrlStmt           *sql.Stmt
-	insertUrlSnippetStmt    *sql.Stmt
+	snippetTagExistsStmt    *sql.Stmt
+	updateSnippetStmt       *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                      tx,
 		tx:                      tx,
+		deleteSnippetTagsStmt:   q.deleteSnippetTagsStmt,
+		deleteSnippetUrlsStmt:   q.deleteSnippetUrlsStmt,
+		deleteTagByTagStmt:      q.deleteTagByTagStmt,
+		findSnippetDataByIdStmt: q.findSnippetDataByIdStmt,
 		findSnippetsByTagsStmt:  q.findSnippetsByTagsStmt,
 		findTagsBySnippetIdStmt: q.findTagsBySnippetIdStmt,
 		findTagsByTagStmt:       q.findTagsByTagStmt,
@@ -183,6 +232,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		insertSnippetTagStmt:    q.insertSnippetTagStmt,
 		insertTagStmt:           q.insertTagStmt,
 		insertUrlStmt:           q.insertUrlStmt,
-		insertUrlSnippetStmt:    q.insertUrlSnippetStmt,
+		snippetTagExistsStmt:    q.snippetTagExistsStmt,
+		updateSnippetStmt:       q.updateSnippetStmt,
 	}
 }

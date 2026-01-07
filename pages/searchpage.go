@@ -1,13 +1,11 @@
-package appui
+package pages
 
 import (
-	"context"
 	"strconv"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gwkeit/gwkeitdb"
-	"github.com/gwkeit/repository"
+	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/transform"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
@@ -19,39 +17,38 @@ var (
 	shortcutRunes = []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'}
 )
 
-type CurrentViewData struct {
-	snippets []gwkeitdb.Snippet
-	tags     []gwkeitdb.Tag
-	urls     []gwkeitdb.Url
+type SearchPage struct {
+	body              *tview.TextArea
+	searchField       *tview.InputField
+	resultList        *tview.List
+	description       *tview.TextArea
+	urls              *tview.TextArea
+	title             *tview.TextArea
+	grid              *tview.Grid
+	frame             *tview.Frame
+	selectedSnippetId int64
 }
 
-type SearchPageUI struct {
-	body        *tview.TextArea
-	searchField *tview.InputField
-	resultList  *tview.List
-	description *tview.TextArea
-	urls        *tview.TextArea
-	title       *tview.TextArea
-	grid        *tview.Grid
-	currentData *CurrentViewData
-}
-
-func (aui *AppUI) NewSearchPage() {
-	aui.searchPage = &SearchPageUI{
-		currentData: &CurrentViewData{},
+func NewSearchPage(
+	globalDeps *globaldeps.GlobalDependencies,
+	logs *widgets.LogsWidget,
+) *SearchPage {
+	searchPage := &SearchPage{
+		selectedSnippetId: -1,
 	}
 
-	aui.searchPage.initMetadataFields()
-	aui.searchPage.initBody()
-	aui.searchPage.initSearchField(aui.ctx, aui.App, aui.repo)
-	aui.searchPage.initResultList(aui.ctx, aui.repo)
-	aui.searchPage.initGridLayout(aui.logs.View)
-	aui.searchPage.initInputCapture(aui.App, aui.logs)
+	searchPage.initMetadataFields()
+	searchPage.initBody()
+	searchPage.initSearchField(globalDeps)
+	searchPage.initResultList(globalDeps)
+	searchPage.initGridLayout(logs.View)
+	searchPage.initInputCapture(globalDeps, logs)
+	searchPage.initFrame()
 
-	aui.pages.AddPage("Main", aui.searchPage.grid, true, true)
+	return searchPage
 }
 
-func (sp *SearchPageUI) initMetadataFields() {
+func (sp *SearchPage) initMetadataFields() {
 	sp.title = uibuilder.NewTextArea("", "")
 	sp.title.SetDisabled(true)
 
@@ -62,15 +59,13 @@ func (sp *SearchPageUI) initMetadataFields() {
 	sp.urls.SetDisabled(true)
 }
 
-func (sp *SearchPageUI) initBody() {
+func (sp *SearchPage) initBody() {
 	sp.body = uibuilder.NewTextArea("", "")
 	sp.body.SetDisabled(true)
 }
 
-func (sp *SearchPageUI) initSearchField(
-	ctx context.Context,
-	app *tview.Application,
-	repo *repository.Repository,
+func (sp *SearchPage) initSearchField(
+	globalDeps *globaldeps.GlobalDependencies,
 ) {
 	sp.searchField = tview.NewInputField().
 		SetLabel("").
@@ -81,16 +76,16 @@ func (sp *SearchPageUI) initSearchField(
 				return
 			}
 
-			app.SetFocus(sp.resultList)
+			globalDeps.App.SetFocus(sp.resultList)
 			index := sp.resultList.GetCurrentItem()
 			onSelect := sp.resultList.GetSelectedFunc()
 			mainText, secText := sp.resultList.GetItemText(index)
 			onSelect(index, mainText, secText, shortcutRunes[index])
 		}).
 		SetChangedFunc(func(text string) {
-			sp.currentData.snippets = repo.FindSnippets(ctx, strings.Split(text, " "))
+			foundSnippets := globalDeps.Repo.FindSnippets(globalDeps.Ctx, strings.Split(text, " "))
 			sp.resultList.Clear()
-			for i, snippet := range sp.currentData.snippets {
+			for i, snippet := range foundSnippets {
 				sp.resultList.AddItem(snippet.Title, strconv.FormatInt(snippet.ID, 10), shortcutRunes[i], nil)
 			}
 		})
@@ -98,20 +93,22 @@ func (sp *SearchPageUI) initSearchField(
 	sp.searchField.SetBackgroundColor(tcell.ColorDefault)
 }
 
-func (sp *SearchPageUI) initResultList(ctx context.Context, repo *repository.Repository) {
+func (sp *SearchPage) initResultList(globalDeps *globaldeps.GlobalDependencies) {
 	sp.resultList = tview.NewList().
 		ShowSecondaryText(false).
 		SetSelectedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
 			id, err := strconv.ParseInt(secondaryText, 10, 64)
+			sp.selectedSnippetId = id
 
 			if err != nil {
 				panic(err)
 			}
 
-			title := sp.currentData.snippets[index].Title
-			body := sp.currentData.snippets[index].Body
-			tags := repo.FindSnippetTags(ctx, id)
-			urls := repo.FindSnippetUrls(ctx, id)
+			snippet := globalDeps.Repo.FindSnippet(globalDeps.Ctx, id)
+			title := snippet.Title
+			body := snippet.Body
+			tags := globalDeps.Repo.FindSnippetTags(globalDeps.Ctx, id)
+			urls := globalDeps.Repo.FindSnippetUrls(globalDeps.Ctx, id)
 
 			sp.title.SetText(title, true)
 			sp.body.SetText(body, true)
@@ -124,7 +121,7 @@ func (sp *SearchPageUI) initResultList(ctx context.Context, repo *repository.Rep
 	sp.resultList.SetShortcutStyle(uibuilder.InputBackgroundStyle.Foreground(tcell.ColorGreen))
 }
 
-func (sp *SearchPageUI) initGridLayout(logsView *tview.TextView) {
+func (sp *SearchPage) initGridLayout(logsView *tview.TextView) {
 	sp.grid = tview.NewGrid().
 		SetRows(3, 11).
 		SetColumns(0, 50).
@@ -143,16 +140,19 @@ func (sp *SearchPageUI) initGridLayout(logsView *tview.TextView) {
 	sp.grid.SetBackgroundColor(tcell.ColorDefault)
 }
 
-func (sp *SearchPageUI) initInputCapture(app *tview.Application, logsWidget *widgets.LogsWidget) {
+func (sp *SearchPage) initInputCapture(
+	globalDeps *globaldeps.GlobalDependencies,
+	logsWidget *widgets.LogsWidget,
+) {
 	sp.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		resultEvent := event
 
 		switch event.Key() {
 		case tcell.KeyCtrlF:
-			app.SetFocus(sp.searchField)
+			globalDeps.App.SetFocus(sp.searchField)
 			resultEvent = nil
 		case tcell.KeyCtrlL:
-			app.SetFocus(sp.resultList)
+			globalDeps.App.SetFocus(sp.resultList)
 			resultEvent = nil
 		case tcell.KeyCtrlC:
 			bodyText := sp.body.GetText()
@@ -163,8 +163,43 @@ func (sp *SearchPageUI) initInputCapture(app *tview.Application, logsWidget *wid
 				clipboard.Write(clipboard.FmtText, []byte(sp.body.GetText()))
 			}
 			resultEvent = nil
+		case tcell.KeyCtrlE:
+			if sp.selectedSnippetId > -1 {
+				globalDeps.GoToEditPage(sp.selectedSnippetId)
+			} else {
+				logsWidget.AddErrorLogs([]string{"No snippet selected."})
+			}
+			resultEvent = nil
 		}
 
 		return resultEvent
 	})
+}
+
+func (sp *SearchPage) initFrame() {
+	sp.frame = tview.NewFrame(sp.grid).
+		SetBorders(0, 0, 0, 0, 0, 0).
+		AddText("Search", true, tview.AlignCenter, tcell.ColorWhite)
+	sp.frame.SetBackgroundColor(tcell.ColorDefault)
+}
+
+func (sp *SearchPage) showSnippet(snippetId int64, globalDeps *globaldeps.GlobalDependencies) {
+	snippet := globalDeps.Repo.FindSnippet(globalDeps.Ctx, snippetId)
+	title := snippet.Title
+	body := snippet.Body
+	tags := globalDeps.Repo.FindSnippetTags(globalDeps.Ctx, snippetId)
+	urls := globalDeps.Repo.FindSnippetUrls(globalDeps.Ctx, snippetId)
+
+	sp.title.SetText(title, true)
+	sp.body.SetText(body, true)
+	sp.description.SetText(transform.TagListToFormDescription(tags), true)
+	sp.urls.SetText(transform.UrlListToFormUrls(urls), true)
+}
+
+func (sp *SearchPage) SwitchToSearchPage(globalDeps *globaldeps.GlobalDependencies) {
+	if sp.selectedSnippetId > -1 {
+		sp.showSnippet(sp.selectedSnippetId, globalDeps)
+	}
+	globalDeps.Pages.SwitchToPage("Main")
+	globalDeps.App.SetFocus(sp.searchField)
 }
