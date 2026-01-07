@@ -10,6 +10,96 @@ import (
 	"strings"
 )
 
+const deleteSnippetTags = `-- name: DeleteSnippetTags :exec
+DELETE FROM snippets_tags
+WHERE id IN (
+    SELECT st.id
+    FROM snippets_tags st
+    LEFT JOIN tags ON snippets_tags.tag_id = tags.id
+    WHERE snippets_tags.tag_id IN (/*SLICE:tagIds*/?) AND snippets_tags.snippet_id = ?
+)
+`
+
+type DeleteSnippetTagsParams struct {
+	TagIds    []int64
+	SnippetID int64
+}
+
+func (q *Queries) DeleteSnippetTags(ctx context.Context, arg DeleteSnippetTagsParams) error {
+	query := deleteSnippetTags
+	var queryParams []interface{}
+	if len(arg.TagIds) > 0 {
+		for _, v := range arg.TagIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tagIds*/?", strings.Repeat(",?", len(arg.TagIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tagIds*/?", "NULL", 1)
+	}
+	queryParams = append(queryParams, arg.SnippetID)
+	_, err := q.exec(ctx, nil, query, queryParams...)
+	return err
+}
+
+const deleteSnippetUrls = `-- name: DeleteSnippetUrls :exec
+DELETE FROM urls WHERE id IN (/*SLICE:ids*/?)
+`
+
+func (q *Queries) DeleteSnippetUrls(ctx context.Context, ids []int64) error {
+	query := deleteSnippetUrls
+	var queryParams []interface{}
+	if len(ids) > 0 {
+		for _, v := range ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	_, err := q.exec(ctx, nil, query, queryParams...)
+	return err
+}
+
+const deleteTagByTag = `-- name: DeleteTagByTag :exec
+DELETE FROM tags WHERE tag = ?
+`
+
+func (q *Queries) DeleteTagByTag(ctx context.Context, tag string) error {
+	_, err := q.exec(ctx, q.deleteTagByTagStmt, deleteTagByTag, tag)
+	return err
+}
+
+const findSnippetDataById = `-- name: FindSnippetDataById :one
+SELECT s.id, s.title, s.body, group_concat(COALESCE(t.tag, ''), ' ') as tags, group_concat(COALESCE(u.url, ''), ' ') as urls
+FROM snippets s
+LEFT JOIN snippets_tags st ON s.id = st.snippet_id
+LEFT JOIN tags t ON st.tag_id = t.id
+LEFT JOIN urls u on s.id = u.snippet_id
+WHERE s.id = ?
+GROUP BY s.id
+`
+
+type FindSnippetDataByIdRow struct {
+	ID    int64
+	Title string
+	Body  string
+	Tags  string
+	Urls  string
+}
+
+func (q *Queries) FindSnippetDataById(ctx context.Context, id int64) (FindSnippetDataByIdRow, error) {
+	row := q.queryRow(ctx, q.findSnippetDataByIdStmt, findSnippetDataById, id)
+	var i FindSnippetDataByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Body,
+		&i.Tags,
+		&i.Urls,
+	)
+	return i, err
+}
+
 const findSnippetsByTags = `-- name: FindSnippetsByTags :many
 SELECT s.id, s.title, s.body
 FROM snippets s
@@ -119,10 +209,9 @@ func (q *Queries) FindTagsByTag(ctx context.Context, tags []string) ([]Tag, erro
 }
 
 const findUrlsBySnippetId = `-- name: FindUrlsBySnippetId :many
-SELECT u.id, u.url
+SELECT u.id, u.url, u.snippet_id
 FROM urls u
-JOIN snippets_urls su on u.id = su.url_id
-WHERE su.snippet_id = ?
+WHERE u.snippet_id = ?
 `
 
 func (q *Queries) FindUrlsBySnippetId(ctx context.Context, snippetID int64) ([]Url, error) {
@@ -134,7 +223,7 @@ func (q *Queries) FindUrlsBySnippetId(ctx context.Context, snippetID int64) ([]U
 	var items []Url
 	for rows.Next() {
 		var i Url
-		if err := rows.Scan(&i.ID, &i.Url); err != nil {
+		if err := rows.Scan(&i.ID, &i.Url, &i.SnippetID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -228,26 +317,43 @@ func (q *Queries) InsertTag(ctx context.Context, tag string) (int64, error) {
 }
 
 const insertUrl = `-- name: InsertUrl :one
-INSERT INTO urls (url) VALUES (?) RETURNING id
+INSERT INTO urls (url, snippet_id) VALUES (?, ?) RETURNING id
 `
 
-func (q *Queries) InsertUrl(ctx context.Context, url string) (int64, error) {
-	row := q.queryRow(ctx, q.insertUrlStmt, insertUrl, url)
+type InsertUrlParams struct {
+	Url       string
+	SnippetID int64
+}
+
+func (q *Queries) InsertUrl(ctx context.Context, arg InsertUrlParams) (int64, error) {
+	row := q.queryRow(ctx, q.insertUrlStmt, insertUrl, arg.Url, arg.SnippetID)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
 }
 
-const insertUrlSnippet = `-- name: InsertUrlSnippet :exec
-INSERT INTO snippets_urls (url_id, snippet_id) VALUES (?, ?)
+const snippetTagExists = `-- name: SnippetTagExists :one
+SELECT EXISTS (SELECT 1 FROM snippets_tags JOIN tags ON snippets_tags.tag_id = tags.id WHERE tags.tag = ?)
 `
 
-type InsertUrlSnippetParams struct {
-	UrlID     int64
-	SnippetID int64
+func (q *Queries) SnippetTagExists(ctx context.Context, tag string) (int64, error) {
+	row := q.queryRow(ctx, q.snippetTagExistsStmt, snippetTagExists, tag)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
-func (q *Queries) InsertUrlSnippet(ctx context.Context, arg InsertUrlSnippetParams) error {
-	_, err := q.exec(ctx, q.insertUrlSnippetStmt, insertUrlSnippet, arg.UrlID, arg.SnippetID)
+const updateSnippet = `-- name: UpdateSnippet :exec
+UPDATE snippets SET title = ?, body = ? WHERE id = ?
+`
+
+type UpdateSnippetParams struct {
+	Title string
+	Body  string
+	ID    int64
+}
+
+func (q *Queries) UpdateSnippet(ctx context.Context, arg UpdateSnippetParams) error {
+	_, err := q.exec(ctx, q.updateSnippetStmt, updateSnippet, arg.Title, arg.Body, arg.ID)
 	return err
 }

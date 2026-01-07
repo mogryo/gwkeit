@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gwkeit/gwkeitdb"
-	"github.com/gwkeit/utils"
+	"github.com/gwkeit/slicelib"
 )
 
 func FormUrlsToUrlList(urls string) []string {
@@ -28,13 +28,13 @@ func FormDescriptionToTagList(tags string) []string {
 }
 
 func TagListToFormDescription(tags []gwkeitdb.Tag) string {
-	return strings.Join(utils.Map(tags, func(tag gwkeitdb.Tag) string {
+	return strings.Join(slicelib.Map(tags, func(tag gwkeitdb.Tag) string {
 		return tag.Tag
 	}), " ")
 }
 
 func UrlListToFormUrls(urls []gwkeitdb.Url) string {
-	return strings.Join(utils.Map(urls, func(url gwkeitdb.Url) string {
+	return strings.Join(slicelib.Map(urls, func(url gwkeitdb.Url) string {
 		return url.Url
 	}), "\n")
 }

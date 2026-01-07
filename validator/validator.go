@@ -3,6 +3,9 @@ package validator
 import (
 	"fmt"
 	"net/url"
+
+	"github.com/gwkeit/dto"
+	"github.com/gwkeit/slicelib"
 )
 
 func ValidateTags(tags []string) []string {
@@ -47,4 +50,13 @@ func ValidateTitle(title string) []string {
 	}
 
 	return validationErrors
+}
+
+func ValidateSnippet(snippet *dto.Snippet) []string {
+	tagErrors := ValidateTags(snippet.Tags)
+	urlErrors := ValidateUrls(snippet.Urls)
+	bodyErrors := ValidateBody(snippet.Body)
+	titleErrors := ValidateTitle(snippet.Title)
+
+	return slicelib.Concat(bodyErrors, titleErrors, tagErrors, urlErrors)
 }
