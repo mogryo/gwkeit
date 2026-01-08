@@ -16,8 +16,7 @@ func Difference[T comparable](a, b []T) []T {
 func DifferenceGetA[T any, K comparable](a []T, b []K, get func(entry T) K) []T {
 	diff := make([]T, 0)
 	for _, aEntry := range a {
-		aValue := get(aEntry)
-		if !slices.Contains(b, aValue) {
+		if !slices.Contains(b, get(aEntry)) {
 			diff = append(diff, aEntry)
 		}
 	}
