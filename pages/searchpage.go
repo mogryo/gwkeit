@@ -112,8 +112,8 @@ func (sp *SearchPage) initResultList(globalDeps *globaldeps.GlobalDependencies) 
 
 			sp.title.SetText(title, true)
 			sp.body.SetText(body, true)
-			sp.description.SetText(transform.TagListToFormDescription(tags), true)
-			sp.urls.SetText(transform.UrlListToFormUrls(urls), true)
+			sp.description.SetText(transform.TagListToFieldDescription(tags), true)
+			sp.urls.SetText(transform.UrlListToFieldUrls(urls), true)
 		}).
 		SetSelectedFocusOnly(true)
 	sp.resultList.SetBackgroundColor(tcell.ColorDefault)
@@ -192,8 +192,8 @@ func (sp *SearchPage) showSnippet(snippetId int64, globalDeps *globaldeps.Global
 
 	sp.title.SetText(title, true)
 	sp.body.SetText(body, true)
-	sp.description.SetText(transform.TagListToFormDescription(tags), true)
-	sp.urls.SetText(transform.UrlListToFormUrls(urls), true)
+	sp.description.SetText(transform.TagListToFieldDescription(tags), true)
+	sp.urls.SetText(transform.UrlListToFieldUrls(urls), true)
 }
 
 func (sp *SearchPage) SwitchToSearchPage(globalDeps *globaldeps.GlobalDependencies) {

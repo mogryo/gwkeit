@@ -8,16 +8,17 @@ import (
 	"github.com/gwkeit/slicelib"
 )
 
-func FormUrlsToUrlList(urls string) []string {
+func FieldUrlsToUrlList(urls string) []string {
 	s := strings.TrimSpace(urls)
 
 	if len(s) == 0 {
 		return []string{}
 	}
-	return strings.Split(strings.TrimSpace(s), "\n")
+	splitUrls := strings.Split(strings.TrimSpace(s), "\n")
+	return slicelib.Map(splitUrls, strings.TrimSpace)
 }
 
-func FormDescriptionToTagList(tags string) []string {
+func FieldDescriptionToTagList(tags string) []string {
 	reg, _ := regexp.Compile(`\s+`)
 	s := reg.ReplaceAllString(strings.TrimSpace(tags), " ")
 	if len(s) == 0 {
@@ -27,13 +28,13 @@ func FormDescriptionToTagList(tags string) []string {
 	return strings.Split(s, " ")
 }
 
-func TagListToFormDescription(tags []gwkeitdb.Tag) string {
+func TagListToFieldDescription(tags []gwkeitdb.Tag) string {
 	return strings.Join(slicelib.Map(tags, func(tag gwkeitdb.Tag) string {
 		return tag.Tag
 	}), " ")
 }
 
-func UrlListToFormUrls(urls []gwkeitdb.Url) string {
+func UrlListToFieldUrls(urls []gwkeitdb.Url) string {
 	return strings.Join(slicelib.Map(urls, func(url gwkeitdb.Url) string {
 		return url.Url
 	}), "\n")

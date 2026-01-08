@@ -13,7 +13,7 @@ func NewSnippetFromFields(titleField string, bodyField string, descriptionField 
 	return &Snippet{
 		Title: transform.CleanupTitle(titleField),
 		Body:  transform.CleanupBody(bodyField),
-		Tags:  transform.FormDescriptionToTagList(descriptionField),
-		Urls:  transform.FormUrlsToUrlList(urlsField),
+		Tags:  transform.FieldDescriptionToTagList(descriptionField),
+		Urls:  transform.FieldUrlsToUrlList(urlsField),
 	}
 }
