@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"log"
+	"strings"
 
 	"github.com/gwkeit/dto"
 	"github.com/gwkeit/gwkeitdb"
@@ -41,7 +43,7 @@ func (r *Repository) FindSnippetUrls(ctx context.Context, snippetId int64) []gwk
 	return urls
 }
 
-func (r *Repository) FindSnippets(ctx context.Context, tags []string) []gwkeitdb.Snippet {
+func (r *Repository) FindSnippetsByTags(ctx context.Context, tags []string) []gwkeitdb.Snippet {
 	snippets, err := r.queries.FindSnippetsByTags(ctx, tags)
 
 	if err != nil {
@@ -49,6 +51,58 @@ func (r *Repository) FindSnippets(ctx context.Context, tags []string) []gwkeitdb
 	}
 
 	return snippets
+}
+
+func (r *Repository) FindSnippetsByLikeTags(ctx context.Context, tags []string) []gwkeitdb.Snippet {
+	allSnippets := make([]gwkeitdb.Snippet, 0)
+	for _, tag := range tags {
+		snippets, err := r.queries.FindSnippetsByLikeTags(ctx, "%"+tag+"%")
+
+		if err != nil {
+			panic(err)
+		}
+		allSnippets = append(allSnippets, snippets...)
+	}
+
+	return slicelib.UniqueGet(allSnippets, func(snippet gwkeitdb.Snippet) int64 { return snippet.ID })
+}
+
+func (r *Repository) FindSnippetsByFts(ctx context.Context, tags []string) []gwkeitdb.Snippet {
+	prefixTags := slicelib.Map(tags, func(tag string) string { return tag + "*" })
+	rows, err := r.db.QueryContext(
+		ctx,
+		"SELECT rowid, title, body, description, url FROM snippets_fts WHERE snippets_fts MATCH $1;",
+		strings.Join(prefixTags, " OR "),
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	resultRows := make([]gwkeitdb.Snippet, 0)
+	for rows.Next() {
+		var (
+			id          int64
+			title       string
+			body        string
+			description string
+			url         string
+		)
+		if err := rows.Scan(&id, &title, &body, &description, &url); err != nil {
+			log.Fatal(err)
+		}
+		newSnippet := gwkeitdb.Snippet{
+			ID:          id,
+			Title:       title,
+			Body:        body,
+			Description: description,
+			Url:         url,
+		}
+		resultRows = append(resultRows, newSnippet)
+	}
+
+	return resultRows
 }
 
 func (r *Repository) SaveSnippet(
@@ -62,7 +116,14 @@ func (r *Repository) SaveSnippet(
 	defer tx.Rollback()
 	qtx := r.queries.WithTx(tx)
 
-	snippetId, _ := qtx.InsertSnippet(ctx, gwkeitdb.InsertSnippetParams{Title: snippetInput.Title, Body: snippetInput.Body})
+	snippetId, _ := qtx.InsertSnippet(
+		ctx, gwkeitdb.InsertSnippetParams{
+			Title:       snippetInput.Title,
+			Body:        snippetInput.Body,
+			Description: snippetInput.Description,
+			Url:         snippetInput.UrlText,
+		},
+	)
 
 	existingTags, _ := qtx.FindTagsByTag(ctx, snippetInput.Tags)
 	existingTagNames := slicelib.Map(existingTags, func(tag gwkeitdb.Tag) string {
@@ -81,8 +142,8 @@ func (r *Repository) SaveSnippet(
 	}
 
 	urlIds := make([]int64, 0)
-	if len(snippetInput.Urls) > 0 {
-		for _, url := range snippetInput.Urls {
+	if len(snippetInput.UrlList) > 0 {
+		for _, url := range snippetInput.UrlList {
 			id, _ := qtx.InsertUrl(ctx, gwkeitdb.InsertUrlParams{Url: url, SnippetID: snippetId})
 			urlIds = append(urlIds, id)
 		}
@@ -117,7 +178,7 @@ func (r *Repository) UpdateSnippet(
 		return err
 	}
 
-	err = r.updateSnippetUrls(ctx, qtx, snippetId, newSnippetData.Urls)
+	err = r.updateSnippetUrls(ctx, qtx, snippetId, newSnippetData.UrlList)
 	if err != nil {
 		return err
 	}

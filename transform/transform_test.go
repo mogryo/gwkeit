@@ -3,7 +3,6 @@ package transform
 import (
 	"testing"
 
-	"github.com/gwkeit/gwkeitdb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,75 +26,27 @@ func Test_FieldUrlsToUrlList(t *testing.T) {
 }
 
 func Test_FieldDescriptionToTagList(t *testing.T) {
-	t.Run("should return empty list for empty description field", func(t *testing.T) {
-		val := FieldDescriptionToTagList("")
+	t.Run("should return empty list for empty fields", func(t *testing.T) {
+		val := FieldTitleAndDescToTagList("", "")
 		assert.Empty(t, val)
 	})
 	t.Run("should return single tag", func(t *testing.T) {
-		val := FieldDescriptionToTagList("one")
+		val := FieldTitleAndDescToTagList("one", "  ")
 		assert.Equal(t, []string{"one"}, val)
 	})
 	t.Run("should return multiple tags", func(t *testing.T) {
-		val := FieldDescriptionToTagList("one  two three   ")
-		assert.Equal(t, []string{"one", "two", "three"}, val)
+		val := FieldTitleAndDescToTagList("one  two three   ", "asd")
+		assert.Equal(t, []string{"one", "two", "three", "asd"}, val)
 	})
 }
 
-func Test_TagListToFieldDescription(t *testing.T) {
-	t.Run("should return empty string for empty tag list", func(t *testing.T) {
-		val := TagListToFieldDescription([]gwkeitdb.Tag{})
-		assert.Empty(t, val)
-	})
-	t.Run("should return string with two tags", func(t *testing.T) {
-		val := TagListToFieldDescription([]gwkeitdb.Tag{
-			{
-				ID:  0,
-				Tag: "one",
-			},
-			{
-				ID:  2,
-				Tag: "two",
-			},
-		})
-		assert.Equal(t, "one two", val)
-	})
-}
-
-func Test_UrlListToFieldUrls(t *testing.T) {
-	t.Run("should return empty list", func(t *testing.T) {
-		val := UrlListToFieldUrls([]gwkeitdb.Url{})
-		assert.Empty(t, val)
-	})
-	t.Run("should return list with single url", func(t *testing.T) {
-		val := UrlListToFieldUrls([]gwkeitdb.Url{
-			{
-				ID:        0,
-				Url:       "https://example.com",
-				SnippetID: 0,
-			},
-		})
-		assert.Equal(t, "https://example.com", val)
-	})
-}
-
-func Test_CleanupBody(t *testing.T) {
+func Test_CleanupString(t *testing.T) {
 	t.Run("should return empty string", func(t *testing.T) {
-		val := CleanupBody("")
+		val := CleanupString("")
 		assert.Empty(t, val)
 	})
 	t.Run("should return string without whitespaces in the beginning and end", func(t *testing.T) {
-		val := CleanupBody("   test   ")
-		assert.Equal(t, "test", val)
-	})
-}
-
-func Test_CleanupTitle(t *testing.T) {
-	t.Run("should return empty string", func(t *testing.T) {
-		val := CleanupTitle("")
-		assert.Empty(t, val)
-	})
-	t.Run("should return string without whitespaces in the beginning and end", func(t *testing.T) {
-		val := CleanupTitle("   test   ")
+		val := CleanupString("   test   ")
 		assert.Equal(t, "test", val)
 	})
 }

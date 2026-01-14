@@ -7,6 +7,7 @@ package gwkeitdb
 
 import (
 	"context"
+	"database/sql"
 	"strings"
 )
 
@@ -70,7 +71,7 @@ func (q *Queries) DeleteTagByTag(ctx context.Context, tag string) error {
 }
 
 const findSnippetDataById = `-- name: FindSnippetDataById :one
-SELECT s.id, s.title, s.body, group_concat(COALESCE(t.tag, ''), ' ') as tags, group_concat(COALESCE(u.url, ''), ' ') as urls
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at, group_concat(COALESCE(t.tag, ''), ' ') as tag_list, group_concat(COALESCE(u.url, ''), ' ') as url_list
 FROM snippets s
 LEFT JOIN snippets_tags st ON s.id = st.snippet_id
 LEFT JOIN tags t ON st.tag_id = t.id
@@ -80,11 +81,15 @@ GROUP BY s.id
 `
 
 type FindSnippetDataByIdRow struct {
-	ID    int64
-	Title string
-	Body  string
-	Tags  string
-	Urls  string
+	ID          int64
+	Title       string
+	Body        string
+	Description string
+	Url         string
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+	TagList     string
+	UrlList     string
 }
 
 func (q *Queries) FindSnippetDataById(ctx context.Context, id int64) (FindSnippetDataByIdRow, error) {
@@ -94,14 +99,57 @@ func (q *Queries) FindSnippetDataById(ctx context.Context, id int64) (FindSnippe
 		&i.ID,
 		&i.Title,
 		&i.Body,
-		&i.Tags,
-		&i.Urls,
+		&i.Description,
+		&i.Url,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.TagList,
+		&i.UrlList,
 	)
 	return i, err
 }
 
+const findSnippetsByLikeTags = `-- name: FindSnippetsByLikeTags :many
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at
+FROM snippets s
+JOIN snippets_tags st on s.id = st.snippet_id
+JOIN tags t on st.tag_id = t.id
+WHERE t.tag LIKE (?1)
+`
+
+func (q *Queries) FindSnippetsByLikeTags(ctx context.Context, tag string) ([]Snippet, error) {
+	rows, err := q.query(ctx, q.findSnippetsByLikeTagsStmt, findSnippetsByLikeTags, tag)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Snippet
+	for rows.Next() {
+		var i Snippet
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.Url,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findSnippetsByTags = `-- name: FindSnippetsByTags :many
-SELECT s.id, s.title, s.body
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at
 FROM snippets s
 JOIN snippets_tags st on s.id = st.snippet_id
 JOIN tags t on st.tag_id = t.id
@@ -127,7 +175,15 @@ func (q *Queries) FindSnippetsByTags(ctx context.Context, tags []string) ([]Snip
 	var items []Snippet
 	for rows.Next() {
 		var i Snippet
-		if err := rows.Scan(&i.ID, &i.Title, &i.Body); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.Url,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -249,7 +305,7 @@ func (q *Queries) GetSnippetCount(ctx context.Context) (int64, error) {
 }
 
 const getSnippets = `-- name: GetSnippets :many
-SELECT id, title, body FROM snippets
+SELECT id, title, body, description, url, created_at, updated_at FROM snippets
 `
 
 func (q *Queries) GetSnippets(ctx context.Context) ([]Snippet, error) {
@@ -261,7 +317,15 @@ func (q *Queries) GetSnippets(ctx context.Context) ([]Snippet, error) {
 	var items []Snippet
 	for rows.Next() {
 		var i Snippet
-		if err := rows.Scan(&i.ID, &i.Title, &i.Body); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.Url,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -276,16 +340,23 @@ func (q *Queries) GetSnippets(ctx context.Context) ([]Snippet, error) {
 }
 
 const insertSnippet = `-- name: InsertSnippet :one
-INSERT INTO snippets (title, body) VALUES (?, ?) RETURNING id
+INSERT INTO snippets (title, body, description, url) VALUES (?, ?, ?, ?) RETURNING id
 `
 
 type InsertSnippetParams struct {
-	Title string
-	Body  string
+	Title       string
+	Body        string
+	Description string
+	Url         string
 }
 
 func (q *Queries) InsertSnippet(ctx context.Context, arg InsertSnippetParams) (int64, error) {
-	row := q.queryRow(ctx, q.insertSnippetStmt, insertSnippet, arg.Title, arg.Body)
+	row := q.queryRow(ctx, q.insertSnippetStmt, insertSnippet,
+		arg.Title,
+		arg.Body,
+		arg.Description,
+		arg.Url,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -344,16 +415,24 @@ func (q *Queries) SnippetTagExists(ctx context.Context, tag string) (int64, erro
 }
 
 const updateSnippet = `-- name: UpdateSnippet :exec
-UPDATE snippets SET title = ?, body = ? WHERE id = ?
+UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, updated_at = current_timestamp WHERE id = ?
 `
 
 type UpdateSnippetParams struct {
-	Title string
-	Body  string
-	ID    int64
+	Title       string
+	Body        string
+	Description string
+	Url         string
+	ID          int64
 }
 
 func (q *Queries) UpdateSnippet(ctx context.Context, arg UpdateSnippetParams) error {
-	_, err := q.exec(ctx, q.updateSnippetStmt, updateSnippet, arg.Title, arg.Body, arg.ID)
+	_, err := q.exec(ctx, q.updateSnippetStmt, updateSnippet,
+		arg.Title,
+		arg.Body,
+		arg.Description,
+		arg.Url,
+		arg.ID,
+	)
 	return err
 }

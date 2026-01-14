@@ -4,10 +4,25 @@
 
 package gwkeitdb
 
+import (
+	"database/sql"
+)
+
 type Snippet struct {
-	ID    int64
-	Title string
-	Body  string
+	ID          int64
+	Title       string
+	Body        string
+	Description string
+	Url         string
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type SnippetsFt struct {
+	Title       string
+	Body        string
+	Description string
+	Url         string
 }
 
 type SnippetsTag struct {

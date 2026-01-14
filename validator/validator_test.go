@@ -58,10 +58,10 @@ func Test_ValidateTitle(t *testing.T) {
 func Test_ValidateSnippet(t *testing.T) {
 	t.Run("should return errors for all fields", func(t *testing.T) {
 		validationResult := ValidateSnippet(&dto.Snippet{
-			Title: "",
-			Body:  "",
-			Urls:  []string{"asd"},
-			Tags:  []string{},
+			Title:   "",
+			Body:    "",
+			UrlList: []string{"asd"},
+			Tags:    []string{},
 		})
 		assert.Equal(t, 4, len(validationResult))
 	})

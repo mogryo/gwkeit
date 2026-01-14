@@ -5,7 +5,7 @@ SELECT * FROM snippets;
 SELECT COUNT(*) FROM snippets;
 
 -- name: InsertSnippet :one
-INSERT INTO snippets (title, body) VALUES (?, ?) RETURNING id;
+INSERT INTO snippets (title, body, description, url) VALUES (?, ?, ?, ?) RETURNING id;
 
 -- name: InsertTag :one
 INSERT INTO tags (tag) VALUES (?) RETURNING id;
@@ -17,7 +17,7 @@ INSERT INTO urls (url, snippet_id) VALUES (?, ?) RETURNING id;
 INSERT INTO snippets_tags (snippet_id, tag_id) VALUES (?, ?);
 
 -- name: UpdateSnippet :exec
-UPDATE snippets SET title = ?, body = ? WHERE id = ?;
+UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, updated_at = current_timestamp WHERE id = ?;
 
 -- name: FindSnippetsByTags :many
 SELECT s.*
@@ -25,6 +25,13 @@ FROM snippets s
 JOIN snippets_tags st on s.id = st.snippet_id
 JOIN tags t on st.tag_id = t.id
 WHERE t.tag IN (sqlc.slice('tags'));
+
+-- name: FindSnippetsByLikeTags :many
+SELECT s.*
+FROM snippets s
+JOIN snippets_tags st on s.id = st.snippet_id
+JOIN tags t on st.tag_id = t.id
+WHERE t.tag LIKE (sqlc.arg('tag'));
 
 -- name: FindUrlsBySnippetId :many
 SELECT u.*
@@ -41,7 +48,7 @@ WHERE st.snippet_id = ?;
 SELECT * FROM tags WHERE tag IN (sqlc.slice('tags'));
 
 -- name: FindSnippetDataById :one
-SELECT s.*, group_concat(COALESCE(t.tag, ''), ' ') as tags, group_concat(COALESCE(u.url, ''), ' ') as urls
+SELECT s.*, group_concat(COALESCE(t.tag, ''), ' ') as tag_list, group_concat(COALESCE(u.url, ''), ' ') as url_list
 FROM snippets s
 LEFT JOIN snippets_tags st ON s.id = st.snippet_id
 LEFT JOIN tags t ON st.tag_id = t.id

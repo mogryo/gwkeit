@@ -77,6 +77,7 @@ func NewAdditionPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.Lo
 					logs.AddErrorLogs([]string{err.Error()})
 				} else {
 					logs.AddSuccessLogs([]string{fmt.Sprintf("Snippet '%s' saved successfully.", snippetDto.Title)})
+					additionPage.clearFields()
 					globalDeps.GoToEditPage(snippetId)
 				}
 			}
@@ -104,4 +105,11 @@ func NewAdditionPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.Lo
 func (ap *AdditionPage) SwitchToAdditionPage(globalDeps *globaldeps.GlobalDependencies) () {
 	globalDeps.Pages.SwitchToPage("Addition")
 	globalDeps.App.SetFocus(ap.body)
+}
+
+func (ap *AdditionPage) clearFields() {
+	ap.body.SetText("", true)
+	ap.title.SetText("", true)
+	ap.description.SetText("", true)
+	ap.urls.SetText("", true)
 }

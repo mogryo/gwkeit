@@ -1,12 +1,15 @@
 package pages
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/cond"
 	"github.com/gwkeit/globaldeps"
-	"github.com/gwkeit/transform"
+	"github.com/gwkeit/gwkeitdb"
+	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
@@ -26,6 +29,9 @@ type SearchPage struct {
 	title             *tview.TextArea
 	grid              *tview.Grid
 	frame             *tview.Frame
+	searchType        *tview.DropDown
+	searchBox         *tview.Flex
+	searchCallback    func(ctx context.Context, words []string) []gwkeitdb.Snippet
 	selectedSnippetId int64
 }
 
@@ -39,8 +45,8 @@ func NewSearchPage(
 
 	searchPage.initMetadataFields()
 	searchPage.initBody()
-	searchPage.initSearchField(globalDeps)
 	searchPage.initResultList(globalDeps)
+	searchPage.initSearchField(globalDeps)
 	searchPage.initGridLayout(logs.View)
 	searchPage.initInputCapture(globalDeps, logs)
 	searchPage.initFrame()
@@ -67,6 +73,24 @@ func (sp *SearchPage) initBody() {
 func (sp *SearchPage) initSearchField(
 	globalDeps *globaldeps.GlobalDependencies,
 ) {
+	executeSearch := func(text string) {
+		splitConditions := strings.Split(strings.TrimSpace(text), " ")
+		filteredConditions := slicelib.Filter(splitConditions, func(condition string) bool { return condition != "" })
+
+		sp.resultList.Clear()
+		if len(filteredConditions) > 0 {
+			foundSnippets := sp.searchCallback(globalDeps.Ctx, filteredConditions)
+			for i, snippet := range foundSnippets {
+				sp.resultList.AddItem(
+					snippet.Title,
+					strconv.FormatInt(snippet.ID, 10),
+					cond.IfElse(i < len(shortcutRunes), shortcutRunes[i], 0),
+					nil,
+				)
+			}
+		}
+	}
+
 	sp.searchField = tview.NewInputField().
 		SetLabel("").
 		SetFieldWidth(0).
@@ -82,15 +106,38 @@ func (sp *SearchPage) initSearchField(
 			mainText, secText := sp.resultList.GetItemText(index)
 			onSelect(index, mainText, secText, shortcutRunes[index])
 		}).
-		SetChangedFunc(func(text string) {
-			foundSnippets := globalDeps.Repo.FindSnippets(globalDeps.Ctx, strings.Split(text, " "))
-			sp.resultList.Clear()
-			for i, snippet := range foundSnippets {
-				sp.resultList.AddItem(snippet.Title, strconv.FormatInt(snippet.ID, 10), shortcutRunes[i], nil)
-			}
-		})
+		SetChangedFunc(executeSearch)
 	sp.searchField.SetFieldStyle(uibuilder.InputBackgroundStyle)
 	sp.searchField.SetBackgroundColor(tcell.ColorDefault)
+
+	sp.searchType = tview.NewDropDown().
+		SetLabel("[ctrl+o] Type: ").
+		SetOptions([]string{"Tags", "Like", "FTS"}, func(text string, index int) {
+			switch text {
+			case "Tags":
+				sp.searchCallback = globalDeps.Repo.FindSnippetsByTags
+			case "Like":
+				sp.searchCallback = globalDeps.Repo.FindSnippetsByLikeTags
+			case "FTS":
+				sp.searchCallback = globalDeps.Repo.FindSnippetsByFts
+			}
+			executeSearch(sp.searchField.GetText())
+		}).
+		SetCurrentOption(0)
+	sp.searchType.SetFieldStyle(uibuilder.InputBackgroundStyle).
+		SetLabelStyle(uibuilder.InputBackgroundStyle).
+		SetFieldBackgroundColor(tcell.ColorDefault).
+		SetListStyles(
+			tcell.StyleDefault.Background(tcell.ColorDefault),
+			tcell.StyleDefault.Background(tcell.ColorGreenYellow),
+		).
+		SetBackgroundColor(tcell.ColorDefault)
+
+	sp.searchBox = tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(sp.searchField, 0, 4, false).
+		AddItem(sp.searchType, 0, 1, false)
+
+	sp.searchBox.SetBorderPadding(0, 0, 0, 0).SetBackgroundColor(tcell.ColorDefault)
 }
 
 func (sp *SearchPage) initResultList(globalDeps *globaldeps.GlobalDependencies) {
@@ -105,15 +152,11 @@ func (sp *SearchPage) initResultList(globalDeps *globaldeps.GlobalDependencies) 
 			}
 
 			snippet := globalDeps.Repo.FindSnippet(globalDeps.Ctx, id)
-			title := snippet.Title
-			body := snippet.Body
-			tags := globalDeps.Repo.FindSnippetTags(globalDeps.Ctx, id)
-			urls := globalDeps.Repo.FindSnippetUrls(globalDeps.Ctx, id)
 
-			sp.title.SetText(title, true)
-			sp.body.SetText(body, true)
-			sp.description.SetText(transform.TagListToFieldDescription(tags), true)
-			sp.urls.SetText(transform.UrlListToFieldUrls(urls), true)
+			sp.title.SetText(snippet.Title, true)
+			sp.body.SetText(snippet.Body, true)
+			sp.description.SetText(snippet.Description, true)
+			sp.urls.SetText(snippet.Url, true)
 		}).
 		SetSelectedFocusOnly(true)
 	sp.resultList.SetBackgroundColor(tcell.ColorDefault)
@@ -126,7 +169,7 @@ func (sp *SearchPage) initGridLayout(logsView *tview.TextView) {
 		SetRows(3, 11).
 		SetColumns(0, 50).
 		SetBorders(false).
-		AddItem(uibuilder.NewWidget("[ctr+f] Search:", sp.searchField), 0, 0, 1, 1, 0, 0, false).
+		AddItem(uibuilder.NewWidget("[ctr+f] Search:", sp.searchBox), 0, 0, 1, 1, 0, 0, false).
 		AddItem(uibuilder.NewWidget("Logs:", logsView), 0, 1, 2, 1, 0, 0, false).
 		AddItem(uibuilder.NewWidget("[ctr+l] List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
 	metadataFlex := tview.NewFlex().SetDirection(tview.FlexRow).
@@ -170,6 +213,9 @@ func (sp *SearchPage) initInputCapture(
 				logsWidget.AddErrorLogs([]string{"No snippet selected."})
 			}
 			resultEvent = nil
+		case tcell.KeyCtrlO:
+			globalDeps.App.SetFocus(sp.searchType)
+			resultEvent = nil
 		}
 
 		return resultEvent
@@ -185,15 +231,11 @@ func (sp *SearchPage) initFrame() {
 
 func (sp *SearchPage) showSnippet(snippetId int64, globalDeps *globaldeps.GlobalDependencies) {
 	snippet := globalDeps.Repo.FindSnippet(globalDeps.Ctx, snippetId)
-	title := snippet.Title
-	body := snippet.Body
-	tags := globalDeps.Repo.FindSnippetTags(globalDeps.Ctx, snippetId)
-	urls := globalDeps.Repo.FindSnippetUrls(globalDeps.Ctx, snippetId)
 
-	sp.title.SetText(title, true)
-	sp.body.SetText(body, true)
-	sp.description.SetText(transform.TagListToFieldDescription(tags), true)
-	sp.urls.SetText(transform.UrlListToFieldUrls(urls), true)
+	sp.title.SetText(snippet.Title, true)
+	sp.body.SetText(snippet.Body, true)
+	sp.description.SetText(snippet.Description, true)
+	sp.urls.SetText(snippet.Url, true)
 }
 
 func (sp *SearchPage) SwitchToSearchPage(globalDeps *globaldeps.GlobalDependencies) {
