@@ -36,6 +36,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findSnippetDataByIdStmt, err = db.PrepareContext(ctx, findSnippetDataById); err != nil {
 		return nil, fmt.Errorf("error preparing query FindSnippetDataById: %w", err)
 	}
+	if q.findSnippetsByLikeTagsStmt, err = db.PrepareContext(ctx, findSnippetsByLikeTags); err != nil {
+		return nil, fmt.Errorf("error preparing query FindSnippetsByLikeTags: %w", err)
+	}
 	if q.findSnippetsByTagsStmt, err = db.PrepareContext(ctx, findSnippetsByTags); err != nil {
 		return nil, fmt.Errorf("error preparing query FindSnippetsByTags: %w", err)
 	}
@@ -95,6 +98,11 @@ func (q *Queries) Close() error {
 	if q.findSnippetDataByIdStmt != nil {
 		if cerr := q.findSnippetDataByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findSnippetDataByIdStmt: %w", cerr)
+		}
+	}
+	if q.findSnippetsByLikeTagsStmt != nil {
+		if cerr := q.findSnippetsByLikeTagsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findSnippetsByLikeTagsStmt: %w", cerr)
 		}
 	}
 	if q.findSnippetsByTagsStmt != nil {
@@ -194,45 +202,47 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                      DBTX
-	tx                      *sql.Tx
-	deleteSnippetTagsStmt   *sql.Stmt
-	deleteSnippetUrlsStmt   *sql.Stmt
-	deleteTagByTagStmt      *sql.Stmt
-	findSnippetDataByIdStmt *sql.Stmt
-	findSnippetsByTagsStmt  *sql.Stmt
-	findTagsBySnippetIdStmt *sql.Stmt
-	findTagsByTagStmt       *sql.Stmt
-	findUrlsBySnippetIdStmt *sql.Stmt
-	getSnippetCountStmt     *sql.Stmt
-	getSnippetsStmt         *sql.Stmt
-	insertSnippetStmt       *sql.Stmt
-	insertSnippetTagStmt    *sql.Stmt
-	insertTagStmt           *sql.Stmt
-	insertUrlStmt           *sql.Stmt
-	snippetTagExistsStmt    *sql.Stmt
-	updateSnippetStmt       *sql.Stmt
+	db                         DBTX
+	tx                         *sql.Tx
+	deleteSnippetTagsStmt      *sql.Stmt
+	deleteSnippetUrlsStmt      *sql.Stmt
+	deleteTagByTagStmt         *sql.Stmt
+	findSnippetDataByIdStmt    *sql.Stmt
+	findSnippetsByLikeTagsStmt *sql.Stmt
+	findSnippetsByTagsStmt     *sql.Stmt
+	findTagsBySnippetIdStmt    *sql.Stmt
+	findTagsByTagStmt          *sql.Stmt
+	findUrlsBySnippetIdStmt    *sql.Stmt
+	getSnippetCountStmt        *sql.Stmt
+	getSnippetsStmt            *sql.Stmt
+	insertSnippetStmt          *sql.Stmt
+	insertSnippetTagStmt       *sql.Stmt
+	insertTagStmt              *sql.Stmt
+	insertUrlStmt              *sql.Stmt
+	snippetTagExistsStmt       *sql.Stmt
+	updateSnippetStmt          *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                      tx,
-		tx:                      tx,
-		deleteSnippetTagsStmt:   q.deleteSnippetTagsStmt,
-		deleteSnippetUrlsStmt:   q.deleteSnippetUrlsStmt,
-		deleteTagByTagStmt:      q.deleteTagByTagStmt,
-		findSnippetDataByIdStmt: q.findSnippetDataByIdStmt,
-		findSnippetsByTagsStmt:  q.findSnippetsByTagsStmt,
-		findTagsBySnippetIdStmt: q.findTagsBySnippetIdStmt,
-		findTagsByTagStmt:       q.findTagsByTagStmt,
-		findUrlsBySnippetIdStmt: q.findUrlsBySnippetIdStmt,
-		getSnippetCountStmt:     q.getSnippetCountStmt,
-		getSnippetsStmt:         q.getSnippetsStmt,
-		insertSnippetStmt:       q.insertSnippetStmt,
-		insertSnippetTagStmt:    q.insertSnippetTagStmt,
-		insertTagStmt:           q.insertTagStmt,
-		insertUrlStmt:           q.insertUrlStmt,
-		snippetTagExistsStmt:    q.snippetTagExistsStmt,
-		updateSnippetStmt:       q.updateSnippetStmt,
+		db:                         tx,
+		tx:                         tx,
+		deleteSnippetTagsStmt:      q.deleteSnippetTagsStmt,
+		deleteSnippetUrlsStmt:      q.deleteSnippetUrlsStmt,
+		deleteTagByTagStmt:         q.deleteTagByTagStmt,
+		findSnippetDataByIdStmt:    q.findSnippetDataByIdStmt,
+		findSnippetsByLikeTagsStmt: q.findSnippetsByLikeTagsStmt,
+		findSnippetsByTagsStmt:     q.findSnippetsByTagsStmt,
+		findTagsBySnippetIdStmt:    q.findTagsBySnippetIdStmt,
+		findTagsByTagStmt:          q.findTagsByTagStmt,
+		findUrlsBySnippetIdStmt:    q.findUrlsBySnippetIdStmt,
+		getSnippetCountStmt:        q.getSnippetCountStmt,
+		getSnippetsStmt:            q.getSnippetsStmt,
+		insertSnippetStmt:          q.insertSnippetStmt,
+		insertSnippetTagStmt:       q.insertSnippetTagStmt,
+		insertTagStmt:              q.insertTagStmt,
+		insertUrlStmt:              q.insertUrlStmt,
+		snippetTagExistsStmt:       q.snippetTagExistsStmt,
+		updateSnippetStmt:          q.updateSnippetStmt,
 	}
 }

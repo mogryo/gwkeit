@@ -54,7 +54,7 @@ func ValidateTitle(title string) []string {
 
 func ValidateSnippet(snippet *dto.Snippet) []string {
 	tagErrors := ValidateTags(snippet.Tags)
-	urlErrors := ValidateUrls(snippet.Urls)
+	urlErrors := ValidateUrls(snippet.UrlList)
 	bodyErrors := ValidateBody(snippet.Body)
 	titleErrors := ValidateTitle(snippet.Title)
 

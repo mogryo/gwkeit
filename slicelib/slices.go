@@ -1,26 +1,26 @@
 package slicelib
 
-func TakeLast[T any](array []T, n int) []T {
-	if len(array) > n {
+func TakeLast[T any](list []T, n int) []T {
+	if len(list) > n {
 		copyArray := make([]T, n)
-		copy(copyArray, (array)[len(array)-n:])
+		copy(copyArray, (list)[len(list)-n:])
 		return copyArray
 	}
 
-	copyArray := make([]T, len(array))
-	copy(copyArray, array)
+	copyArray := make([]T, len(list))
+	copy(copyArray, list)
 	return copyArray
 }
 
-func Concat[T any](slices ...[]T) []T {
+func Concat[T any](list ...[]T) []T {
 	var totalLen int
-	for _, s := range slices {
+	for _, s := range list {
 		totalLen += len(s)
 	}
 
 	aggregatedSlices := make([]T, totalLen)
 	var i int
-	for _, s := range slices {
+	for _, s := range list {
 		i += copy(aggregatedSlices[i:], s)
 	}
 	return aggregatedSlices

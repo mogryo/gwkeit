@@ -111,8 +111,8 @@ func (ep *EditPage) loadSnippet(snippetId int64, globalDeps *globaldeps.GlobalDe
 
 	ep.body.SetText(snippet.Body, true)
 	ep.title.SetText(snippet.Title, true)
-	ep.description.SetText(snippet.Tags, true)
-	ep.urls.SetText(snippet.Urls, true)
+	ep.description.SetText(snippet.Description, true)
+	ep.urls.SetText(snippet.Url, true)
 }
 
 func (ep *EditPage) SwitchToEditPage(snippetId int64, globalDeps *globaldeps.GlobalDependencies) {

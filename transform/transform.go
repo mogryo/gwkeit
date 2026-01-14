@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gwkeit/gwkeitdb"
 	"github.com/gwkeit/slicelib"
 )
 
@@ -18,32 +17,30 @@ func FieldUrlsToUrlList(urls string) []string {
 	return slicelib.Map(splitUrls, strings.TrimSpace)
 }
 
-func FieldDescriptionToTagList(tags string) []string {
+func FieldTitleAndDescToTagList(title, description string) []string {
 	reg, _ := regexp.Compile(`\s+`)
-	s := reg.ReplaceAllString(strings.TrimSpace(tags), " ")
-	if len(s) == 0 {
-		return []string{}
+	trimmedTitle := reg.ReplaceAllString(strings.TrimSpace(title), " ")
+	trimmedDescription := reg.ReplaceAllString(strings.TrimSpace(description), " ")
+
+	var splitTitle []string
+	if len(trimmedTitle) > 0 {
+		splitTitle = strings.Split(strings.Trim(trimmedTitle, " "), " ")
+	} else {
+		splitTitle = []string{}
 	}
-	s = strings.Trim(s, " ")
-	return strings.Split(s, " ")
+
+	var splitDescription []string
+	if len(trimmedDescription) > 0 {
+		splitDescription = strings.Split(strings.Trim(trimmedDescription, " "), " ")
+	} else {
+		splitDescription = []string{}
+	}
+	joinedTags := slicelib.Concat(splitTitle, splitDescription)
+	lowercaseTags := slicelib.Map(joinedTags, strings.ToLower)
+
+	return slicelib.Unique(lowercaseTags)
 }
 
-func TagListToFieldDescription(tags []gwkeitdb.Tag) string {
-	return strings.Join(slicelib.Map(tags, func(tag gwkeitdb.Tag) string {
-		return tag.Tag
-	}), " ")
-}
-
-func UrlListToFieldUrls(urls []gwkeitdb.Url) string {
-	return strings.Join(slicelib.Map(urls, func(url gwkeitdb.Url) string {
-		return url.Url
-	}), "\n")
-}
-
-func CleanupBody(body string) string {
-	return strings.TrimSpace(body)
-}
-
-func CleanupTitle(title string) string {
-	return strings.TrimSpace(title)
+func CleanupString(value string) string {
+	return strings.TrimSpace(value)
 }

@@ -3,17 +3,26 @@ package dto
 import "github.com/gwkeit/transform"
 
 type Snippet struct {
-	Title string
-	Body  string
-	Tags  []string
-	Urls  []string
+	Body        string
+	Title       string
+	Description string
+	UrlText     string
+	UrlList     []string
+	Tags        []string
 }
 
-func NewSnippetFromFields(titleField string, bodyField string, descriptionField string, urlsField string) *Snippet {
+func NewSnippetFromFields(
+	titleField string,
+	bodyField string,
+	descriptionField string,
+	urlsField string,
+) *Snippet {
 	return &Snippet{
-		Title: transform.CleanupTitle(titleField),
-		Body:  transform.CleanupBody(bodyField),
-		Tags:  transform.FieldDescriptionToTagList(descriptionField),
-		Urls:  transform.FieldUrlsToUrlList(urlsField),
+		Title:       transform.CleanupString(titleField),
+		Body:        transform.CleanupString(bodyField),
+		Tags:        transform.FieldTitleAndDescToTagList(titleField, descriptionField),
+		UrlList:     transform.FieldUrlsToUrlList(urlsField),
+		UrlText:     transform.CleanupString(urlsField),
+		Description: transform.CleanupString(descriptionField),
 	}
 }
