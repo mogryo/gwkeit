@@ -1,6 +1,3 @@
--- name: GetSnippets :many
-SELECT * FROM snippets;
-
 -- name: GetSnippetCount :one
 SELECT COUNT(*) FROM snippets;
 
@@ -18,6 +15,13 @@ INSERT INTO snippets_tags (snippet_id, tag_id) VALUES (?, ?);
 
 -- name: UpdateSnippet :exec
 UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, updated_at = current_timestamp WHERE id = ?;
+
+-- name: FindSnippetsPaginated :many
+SELECT s.*
+FROM snippets s
+ORDER BY s.updated_at DESC
+LIMIT ?
+OFFSET ?;
 
 -- name: FindSnippetsByTags :many
 SELECT s.*

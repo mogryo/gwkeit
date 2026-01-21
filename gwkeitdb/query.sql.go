@@ -197,6 +197,50 @@ func (q *Queries) FindSnippetsByTags(ctx context.Context, tags []string) ([]Snip
 	return items, nil
 }
 
+const findSnippetsPaginated = `-- name: FindSnippetsPaginated :many
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at
+FROM snippets s
+ORDER BY s.updated_at DESC
+LIMIT ?
+OFFSET ?
+`
+
+type FindSnippetsPaginatedParams struct {
+	Limit  int64
+	Offset int64
+}
+
+func (q *Queries) FindSnippetsPaginated(ctx context.Context, arg FindSnippetsPaginatedParams) ([]Snippet, error) {
+	rows, err := q.query(ctx, q.findSnippetsPaginatedStmt, findSnippetsPaginated, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Snippet
+	for rows.Next() {
+		var i Snippet
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.Url,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findTagsBySnippetId = `-- name: FindTagsBySnippetId :many
 SELECT t.id, t.tag
 FROM tags t
