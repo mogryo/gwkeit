@@ -42,6 +42,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findSnippetsByTagsStmt, err = db.PrepareContext(ctx, findSnippetsByTags); err != nil {
 		return nil, fmt.Errorf("error preparing query FindSnippetsByTags: %w", err)
 	}
+	if q.findSnippetsPaginatedStmt, err = db.PrepareContext(ctx, findSnippetsPaginated); err != nil {
+		return nil, fmt.Errorf("error preparing query FindSnippetsPaginated: %w", err)
+	}
 	if q.findTagsBySnippetIdStmt, err = db.PrepareContext(ctx, findTagsBySnippetId); err != nil {
 		return nil, fmt.Errorf("error preparing query FindTagsBySnippetId: %w", err)
 	}
@@ -108,6 +111,11 @@ func (q *Queries) Close() error {
 	if q.findSnippetsByTagsStmt != nil {
 		if cerr := q.findSnippetsByTagsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findSnippetsByTagsStmt: %w", cerr)
+		}
+	}
+	if q.findSnippetsPaginatedStmt != nil {
+		if cerr := q.findSnippetsPaginatedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findSnippetsPaginatedStmt: %w", cerr)
 		}
 	}
 	if q.findTagsBySnippetIdStmt != nil {
@@ -210,6 +218,7 @@ type Queries struct {
 	findSnippetDataByIdStmt    *sql.Stmt
 	findSnippetsByLikeTagsStmt *sql.Stmt
 	findSnippetsByTagsStmt     *sql.Stmt
+	findSnippetsPaginatedStmt  *sql.Stmt
 	findTagsBySnippetIdStmt    *sql.Stmt
 	findTagsByTagStmt          *sql.Stmt
 	findUrlsBySnippetIdStmt    *sql.Stmt
@@ -233,6 +242,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findSnippetDataByIdStmt:    q.findSnippetDataByIdStmt,
 		findSnippetsByLikeTagsStmt: q.findSnippetsByLikeTagsStmt,
 		findSnippetsByTagsStmt:     q.findSnippetsByTagsStmt,
+		findSnippetsPaginatedStmt:  q.findSnippetsPaginatedStmt,
 		findTagsBySnippetIdStmt:    q.findTagsBySnippetIdStmt,
 		findTagsByTagStmt:          q.findTagsByTagStmt,
 		findUrlsBySnippetIdStmt:    q.findUrlsBySnippetIdStmt,

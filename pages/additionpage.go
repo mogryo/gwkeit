@@ -20,10 +20,13 @@ type AdditionPage struct {
 	urls        *tview.TextArea
 	grid        *tview.Grid
 	frame       *tview.Frame
+	globalDeps  *globaldeps.GlobalDependencies
 }
 
 func NewAdditionPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWidget) *AdditionPage {
-	additionPage := &AdditionPage{}
+	additionPage := &AdditionPage{
+		globalDeps: globalDeps,
+	}
 
 	additionPage.body = uibuilder.NewTextArea("", "")
 	additionPage.title = uibuilder.NewTextArea("", "")
@@ -39,7 +42,8 @@ func NewAdditionPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.Lo
 		AddItem(uibuilder.NewWidget("[ctrl+d] Description:", additionPage.description), 0, 3, false).
 		AddItem(uibuilder.NewWidget("[ctrl+u] URLs:", additionPage.urls), 0, 3, false)
 
-	additionPage.grid.AddItem(uibuilder.NewWidget("[ctrl+b] Code:", additionPage.body), 0, 0, 2, 1, 0, 100, false).
+	additionPage.grid.
+		AddItem(uibuilder.NewWidget("[ctrl+b] Code:", additionPage.body), 0, 0, 2, 1, 0, 100, false).
 		AddItem(uibuilder.NewWidget("Logs:", logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(flex, 1, 1, 1, 1, 0, 100, false)
 
@@ -102,9 +106,9 @@ func NewAdditionPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.Lo
 	return additionPage
 }
 
-func (ap *AdditionPage) SwitchToAdditionPage(globalDeps *globaldeps.GlobalDependencies) () {
-	globalDeps.Pages.SwitchToPage("Addition")
-	globalDeps.App.SetFocus(ap.body)
+func (ap *AdditionPage) SwitchToAdditionPage() () {
+	ap.globalDeps.Pages.SwitchToPage("Addition")
+	ap.globalDeps.App.SetFocus(ap.body)
 }
 
 func (ap *AdditionPage) clearFields() {

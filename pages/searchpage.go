@@ -33,6 +33,8 @@ type SearchPage struct {
 	searchBox         *tview.Flex
 	searchCallback    func(ctx context.Context, words []string) []gwkeitdb.Snippet
 	selectedSnippetId int64
+	globalDeps        *globaldeps.GlobalDependencies
+	logs              *widgets.LogsWidget
 }
 
 func NewSearchPage(
@@ -41,14 +43,16 @@ func NewSearchPage(
 ) *SearchPage {
 	searchPage := &SearchPage{
 		selectedSnippetId: -1,
+		globalDeps:        globalDeps,
+		logs:              logs,
 	}
 
 	searchPage.initMetadataFields()
 	searchPage.initBody()
-	searchPage.initResultList(globalDeps)
-	searchPage.initSearchField(globalDeps)
-	searchPage.initGridLayout(logs.View)
-	searchPage.initInputCapture(globalDeps, logs)
+	searchPage.initResultList()
+	searchPage.initSearchField()
+	searchPage.initGridLayout()
+	searchPage.initInputCapture()
 	searchPage.initFrame()
 
 	return searchPage
@@ -70,16 +74,14 @@ func (sp *SearchPage) initBody() {
 	sp.body.SetDisabled(true)
 }
 
-func (sp *SearchPage) initSearchField(
-	globalDeps *globaldeps.GlobalDependencies,
-) {
+func (sp *SearchPage) initSearchField() {
 	executeSearch := func(text string) {
 		splitConditions := strings.Split(strings.TrimSpace(text), " ")
 		filteredConditions := slicelib.Filter(splitConditions, func(condition string) bool { return condition != "" })
 
 		sp.resultList.Clear()
 		if len(filteredConditions) > 0 {
-			foundSnippets := sp.searchCallback(globalDeps.Ctx, filteredConditions)
+			foundSnippets := sp.searchCallback(sp.globalDeps.Ctx, filteredConditions)
 			for i, snippet := range foundSnippets {
 				sp.resultList.AddItem(
 					snippet.Title,
@@ -100,7 +102,7 @@ func (sp *SearchPage) initSearchField(
 				return
 			}
 
-			globalDeps.App.SetFocus(sp.resultList)
+			sp.globalDeps.App.SetFocus(sp.resultList)
 			index := sp.resultList.GetCurrentItem()
 			onSelect := sp.resultList.GetSelectedFunc()
 			mainText, secText := sp.resultList.GetItemText(index)
@@ -115,11 +117,11 @@ func (sp *SearchPage) initSearchField(
 		SetOptions([]string{"Tags", "Like", "FTS"}, func(text string, index int) {
 			switch text {
 			case "Tags":
-				sp.searchCallback = globalDeps.Repo.FindSnippetsByTags
+				sp.searchCallback = sp.globalDeps.Repo.FindSnippetsByTags
 			case "Like":
-				sp.searchCallback = globalDeps.Repo.FindSnippetsByLikeTags
+				sp.searchCallback = sp.globalDeps.Repo.FindSnippetsByLikeTags
 			case "FTS":
-				sp.searchCallback = globalDeps.Repo.FindSnippetsByFts
+				sp.searchCallback = sp.globalDeps.Repo.FindSnippetsByFts
 			}
 			executeSearch(sp.searchField.GetText())
 		}).
@@ -140,7 +142,7 @@ func (sp *SearchPage) initSearchField(
 	sp.searchBox.SetBorderPadding(0, 0, 0, 0).SetBackgroundColor(tcell.ColorDefault)
 }
 
-func (sp *SearchPage) initResultList(globalDeps *globaldeps.GlobalDependencies) {
+func (sp *SearchPage) initResultList() {
 	sp.resultList = tview.NewList().
 		ShowSecondaryText(false).
 		SetSelectedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
@@ -151,7 +153,7 @@ func (sp *SearchPage) initResultList(globalDeps *globaldeps.GlobalDependencies) 
 				panic(err)
 			}
 
-			snippet := globalDeps.Repo.FindSnippet(globalDeps.Ctx, id)
+			snippet := sp.globalDeps.Repo.FindSnippet(sp.globalDeps.Ctx, id)
 
 			sp.title.SetText(snippet.Title, true)
 			sp.body.SetText(snippet.Body, true)
@@ -164,13 +166,13 @@ func (sp *SearchPage) initResultList(globalDeps *globaldeps.GlobalDependencies) 
 	sp.resultList.SetShortcutStyle(uibuilder.InputBackgroundStyle.Foreground(tcell.ColorGreen))
 }
 
-func (sp *SearchPage) initGridLayout(logsView *tview.TextView) {
+func (sp *SearchPage) initGridLayout() {
 	sp.grid = tview.NewGrid().
 		SetRows(3, 11).
 		SetColumns(0, 50).
 		SetBorders(false).
 		AddItem(uibuilder.NewWidget("[ctr+f] Search:", sp.searchBox), 0, 0, 1, 1, 0, 0, false).
-		AddItem(uibuilder.NewWidget("Logs:", logsView), 0, 1, 2, 1, 0, 0, false).
+		AddItem(uibuilder.NewWidget("Logs:", sp.logs.View), 0, 1, 2, 1, 0, 0, false).
 		AddItem(uibuilder.NewWidget("[ctr+l] List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
 	metadataFlex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(uibuilder.NewWidget("Title:", sp.title), 0, 1, false).
@@ -183,38 +185,35 @@ func (sp *SearchPage) initGridLayout(logsView *tview.TextView) {
 	sp.grid.SetBackgroundColor(tcell.ColorDefault)
 }
 
-func (sp *SearchPage) initInputCapture(
-	globalDeps *globaldeps.GlobalDependencies,
-	logsWidget *widgets.LogsWidget,
-) {
+func (sp *SearchPage) initInputCapture() {
 	sp.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		resultEvent := event
 
 		switch event.Key() {
 		case tcell.KeyCtrlF:
-			globalDeps.App.SetFocus(sp.searchField)
+			sp.globalDeps.App.SetFocus(sp.searchField)
 			resultEvent = nil
 		case tcell.KeyCtrlL:
-			globalDeps.App.SetFocus(sp.resultList)
+			sp.globalDeps.App.SetFocus(sp.resultList)
 			resultEvent = nil
 		case tcell.KeyCtrlC:
 			bodyText := sp.body.GetText()
 			if strings.TrimSpace(bodyText) == "" {
-				logsWidget.AddErrorLogs([]string{"Body is empty. Nothing to copy."})
+				sp.logs.AddErrorLogs([]string{"Body is empty. Nothing to copy."})
 			} else {
-				logsWidget.AddSuccessLogs([]string{"Body copied to clipboard."})
+				sp.logs.AddSuccessLogs([]string{"Body copied to clipboard."})
 				clipboard.Write(clipboard.FmtText, []byte(sp.body.GetText()))
 			}
 			resultEvent = nil
 		case tcell.KeyCtrlE:
 			if sp.selectedSnippetId > -1 {
-				globalDeps.GoToEditPage(sp.selectedSnippetId)
+				sp.globalDeps.GoToEditPage(sp.selectedSnippetId)
 			} else {
-				logsWidget.AddErrorLogs([]string{"No snippet selected."})
+				sp.logs.AddErrorLogs([]string{"No snippet selected."})
 			}
 			resultEvent = nil
 		case tcell.KeyCtrlO:
-			globalDeps.App.SetFocus(sp.searchType)
+			sp.globalDeps.App.SetFocus(sp.searchType)
 			resultEvent = nil
 		}
 
@@ -229,8 +228,8 @@ func (sp *SearchPage) initFrame() {
 	sp.frame.SetBackgroundColor(tcell.ColorDefault)
 }
 
-func (sp *SearchPage) showSnippet(snippetId int64, globalDeps *globaldeps.GlobalDependencies) {
-	snippet := globalDeps.Repo.FindSnippet(globalDeps.Ctx, snippetId)
+func (sp *SearchPage) showSnippet(snippetId int64) {
+	snippet := sp.globalDeps.Repo.FindSnippet(sp.globalDeps.Ctx, snippetId)
 
 	sp.title.SetText(snippet.Title, true)
 	sp.body.SetText(snippet.Body, true)
@@ -238,10 +237,10 @@ func (sp *SearchPage) showSnippet(snippetId int64, globalDeps *globaldeps.Global
 	sp.urls.SetText(snippet.Url, true)
 }
 
-func (sp *SearchPage) SwitchToSearchPage(globalDeps *globaldeps.GlobalDependencies) {
+func (sp *SearchPage) SwitchToSearchPage() {
 	if sp.selectedSnippetId > -1 {
-		sp.showSnippet(sp.selectedSnippetId, globalDeps)
+		sp.showSnippet(sp.selectedSnippetId)
 	}
-	globalDeps.Pages.SwitchToPage("Main")
-	globalDeps.App.SetFocus(sp.searchField)
+	sp.globalDeps.Pages.SwitchToPage("Main")
+	sp.globalDeps.App.SetFocus(sp.searchField)
 }

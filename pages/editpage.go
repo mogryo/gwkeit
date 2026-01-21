@@ -21,10 +21,13 @@ type EditPage struct {
 	urls        *tview.TextArea
 	grid        *tview.Grid
 	frame       *tview.Frame
+	globalDeps  *globaldeps.GlobalDependencies
 }
 
 func NewEditPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWidget) *EditPage {
-	editPage := &EditPage{}
+	editPage := &EditPage{
+		globalDeps: globalDeps,
+	}
 
 	editPage.body = uibuilder.NewTextArea("", "")
 	editPage.title = uibuilder.NewTextArea("", "")
@@ -87,7 +90,7 @@ func NewEditPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWi
 			resultEvent = nil
 		case tcell.KeyCtrlN:
 			if editPage.snippetId > -1 {
-				editPage.loadSnippet(editPage.snippetId, globalDeps)
+				editPage.loadSnippet(editPage.snippetId)
 			}
 			resultEvent = nil
 		}
@@ -105,9 +108,9 @@ func NewEditPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWi
 	return editPage
 }
 
-func (ep *EditPage) loadSnippet(snippetId int64, globalDeps *globaldeps.GlobalDependencies) {
+func (ep *EditPage) loadSnippet(snippetId int64) {
 	ep.snippetId = snippetId
-	snippet := globalDeps.Repo.FindSnippet(globalDeps.Ctx, snippetId)
+	snippet := ep.globalDeps.Repo.FindSnippet(ep.globalDeps.Ctx, snippetId)
 
 	ep.body.SetText(snippet.Body, true)
 	ep.title.SetText(snippet.Title, true)
@@ -115,8 +118,8 @@ func (ep *EditPage) loadSnippet(snippetId int64, globalDeps *globaldeps.GlobalDe
 	ep.urls.SetText(snippet.Url, true)
 }
 
-func (ep *EditPage) SwitchToEditPage(snippetId int64, globalDeps *globaldeps.GlobalDependencies) {
-	ep.loadSnippet(snippetId, globalDeps)
-	globalDeps.Pages.SwitchToPage("Edit")
-	globalDeps.App.SetFocus(ep.body)
+func (ep *EditPage) SwitchToEditPage(snippetId int64) {
+	ep.loadSnippet(snippetId)
+	ep.globalDeps.Pages.SwitchToPage("Edit")
+	ep.globalDeps.App.SetFocus(ep.body)
 }

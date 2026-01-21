@@ -11,6 +11,29 @@ var (
 	InputBackgroundStyle = tcell.StyleDefault.Background(tcell.ColorDefault)
 )
 
+func NewInputField(label string, placeholder string) *tview.InputField {
+	field := tview.NewInputField().
+		SetLabel(label).
+		SetPlaceholder(placeholder)
+
+	field.SetFieldStyle(InputBackgroundStyle).
+		SetLabelStyle(InputBackgroundStyle).
+		SetPlaceholderStyle(InputBackgroundStyle).
+		SetFieldBackgroundColor(tcell.ColorDefault).
+		SetBackgroundColor(tcell.ColorDefault)
+	field.SetLabelStyle(tcell.StyleDefault.Background(tcell.ColorDefault))
+	field.SetLabelColor(tcell.ColorDarkSeaGreen)
+
+	return field
+}
+
+func NewTextView(text string) *tview.TextView {
+	textView := tview.NewTextView().SetText(text)
+	textView.SetBackgroundColor(tcell.ColorDefault)
+
+	return textView
+}
+
 func NewTextArea(
 	label string,
 	placeholder string,
