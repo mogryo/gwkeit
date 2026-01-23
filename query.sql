@@ -19,7 +19,7 @@ UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, updated_at = 
 -- name: FindSnippetsPaginated :many
 SELECT s.*
 FROM snippets s
-ORDER BY s.updated_at DESC
+ORDER BY s.created_at DESC
 LIMIT ?
 OFFSET ?;
 

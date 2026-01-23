@@ -32,7 +32,7 @@ func Run(ctx context.Context, repo *repository.Repository) error {
 		case tcell.KeyCtrlC:
 			resultEvent = tcell.NewEventKey(tcell.KeyCtrlC, 0, tcell.ModNone)
 			return resultEvent
-		case tcell.KeyCtrlL:
+		case tcell.KeyCtrlK:
 			pageContainer.allSnippetsPage.SwitchToSnippetListPage()
 			resultEvent = nil
 		}

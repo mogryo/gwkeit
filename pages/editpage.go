@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/dto"
@@ -11,6 +12,7 @@ import (
 	"github.com/gwkeit/validator"
 	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
+	"golang.design/x/clipboard"
 )
 
 type EditPage struct {
@@ -93,6 +95,14 @@ func NewEditPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWi
 				editPage.loadSnippet(editPage.snippetId)
 			}
 			resultEvent = nil
+		case tcell.KeyCtrlC:
+			bodyText := editPage.body.GetText()
+			if strings.TrimSpace(bodyText) == "" {
+				logs.AddErrorLogs([]string{"Body is empty. Nothing to copy."})
+			} else {
+				logs.AddSuccessLogs([]string{"Body copied to clipboard."})
+				clipboard.Write(clipboard.FmtText, []byte(editPage.body.GetText()))
+			}
 		}
 
 		return resultEvent
