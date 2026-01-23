@@ -200,7 +200,7 @@ func (q *Queries) FindSnippetsByTags(ctx context.Context, tags []string) ([]Snip
 const findSnippetsPaginated = `-- name: FindSnippetsPaginated :many
 SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at
 FROM snippets s
-ORDER BY s.updated_at DESC
+ORDER BY s.created_at DESC
 LIMIT ?
 OFFSET ?
 `
@@ -346,41 +346,6 @@ func (q *Queries) GetSnippetCount(ctx context.Context) (int64, error) {
 	var count int64
 	err := row.Scan(&count)
 	return count, err
-}
-
-const getSnippets = `-- name: GetSnippets :many
-SELECT id, title, body, description, url, created_at, updated_at FROM snippets
-`
-
-func (q *Queries) GetSnippets(ctx context.Context) ([]Snippet, error) {
-	rows, err := q.query(ctx, q.getSnippetsStmt, getSnippets)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Snippet
-	for rows.Next() {
-		var i Snippet
-		if err := rows.Scan(
-			&i.ID,
-			&i.Title,
-			&i.Body,
-			&i.Description,
-			&i.Url,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const insertSnippet = `-- name: InsertSnippet :one

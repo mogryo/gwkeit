@@ -32,6 +32,7 @@ type AllSnippetsPage struct {
 	currentPageInput       *tview.InputField
 	pageSizeInput          *tview.InputField
 	snippets               []gwkeitdb.Snippet
+	selectedSnippetId      int64
 }
 
 const (
@@ -49,6 +50,7 @@ func NewAllSnippetsPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets
 		totalPagesView:         uibuilder.NewTextView("Total pages: 0"),
 		logs:                   logs,
 		pageSize:               DEFAULT_PAGE_SIZE,
+		selectedSnippetId:      -1,
 	}
 
 	snippetDataFlex := asp.initSnippetDataFlex()
@@ -69,6 +71,7 @@ func (asp *AllSnippetsPage) populateTable(
 	pageSize int64,
 ) {
 	asp.table.Clear()
+	asp.selectedSnippetId = -1
 	snippets, err := asp.globalDeps.Repo.FindSnippetsByPage(ctx, page, pageSize)
 	if err != nil {
 		asp.logs.AddErrorLogs([]string{"error while fetching snippets"})
@@ -149,6 +152,13 @@ func (asp *AllSnippetsPage) initInputCapture() {
 				asp.table.Select(1, 0)
 			}
 			resultEvent = nil
+		case tcell.KeyCtrlE:
+			if asp.selectedSnippetId > -1 {
+				asp.globalDeps.GoToEditPage(asp.selectedSnippetId)
+			} else {
+				asp.logs.AddErrorLogs([]string{"No snippet selected."})
+			}
+			resultEvent = nil
 		}
 
 		return resultEvent
@@ -172,6 +182,7 @@ func (asp *AllSnippetsPage) initTable() {
 				return
 			}
 			snippet := asp.globalDeps.Repo.FindSnippet(asp.globalDeps.Ctx, asp.snippets[row-1].ID)
+			asp.selectedSnippetId = snippet.ID
 			asp.title.SetText(snippet.Title, false)
 			asp.description.SetText(snippet.Description, false)
 			asp.urls.SetText(snippet.Url, false)

@@ -71,7 +71,15 @@ func (r *Repository) UpdateSnippet(
 	defer tx.Rollback()
 	qtx := r.queries.WithTx(tx)
 
-	err = qtx.UpdateSnippet(ctx, gwkeitdb.UpdateSnippetParams{ID: snippetId, Title: newSnippetData.Title, Body: newSnippetData.Body})
+	err = qtx.UpdateSnippet(
+		ctx,
+		gwkeitdb.UpdateSnippetParams{
+			ID:          snippetId,
+			Title:       newSnippetData.Title,
+			Body:        newSnippetData.Body,
+			Description: newSnippetData.Description,
+		},
+	)
 	if err != nil {
 		return err
 	}

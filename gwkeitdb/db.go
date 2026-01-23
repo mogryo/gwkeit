@@ -57,9 +57,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getSnippetCountStmt, err = db.PrepareContext(ctx, getSnippetCount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSnippetCount: %w", err)
 	}
-	if q.getSnippetsStmt, err = db.PrepareContext(ctx, getSnippets); err != nil {
-		return nil, fmt.Errorf("error preparing query GetSnippets: %w", err)
-	}
 	if q.insertSnippetStmt, err = db.PrepareContext(ctx, insertSnippet); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertSnippet: %w", err)
 	}
@@ -136,11 +133,6 @@ func (q *Queries) Close() error {
 	if q.getSnippetCountStmt != nil {
 		if cerr := q.getSnippetCountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getSnippetCountStmt: %w", cerr)
-		}
-	}
-	if q.getSnippetsStmt != nil {
-		if cerr := q.getSnippetsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getSnippetsStmt: %w", cerr)
 		}
 	}
 	if q.insertSnippetStmt != nil {
@@ -223,7 +215,6 @@ type Queries struct {
 	findTagsByTagStmt          *sql.Stmt
 	findUrlsBySnippetIdStmt    *sql.Stmt
 	getSnippetCountStmt        *sql.Stmt
-	getSnippetsStmt            *sql.Stmt
 	insertSnippetStmt          *sql.Stmt
 	insertSnippetTagStmt       *sql.Stmt
 	insertTagStmt              *sql.Stmt
@@ -247,7 +238,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findTagsByTagStmt:          q.findTagsByTagStmt,
 		findUrlsBySnippetIdStmt:    q.findUrlsBySnippetIdStmt,
 		getSnippetCountStmt:        q.getSnippetCountStmt,
-		getSnippetsStmt:            q.getSnippetsStmt,
 		insertSnippetStmt:          q.insertSnippetStmt,
 		insertSnippetTagStmt:       q.insertSnippetTagStmt,
 		insertTagStmt:              q.insertTagStmt,
