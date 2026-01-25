@@ -16,7 +16,7 @@ func Run(ctx context.Context, repo *repository.Repository) error {
 
 	globalDeps.App.SetRoot(globalDeps.Pages, true).EnableMouse(true)
 	pageContainer.searchPage.SwitchToSearchPage()
-	globalDeps.App.SetFocus(pageContainer.searchPage.searchField)
+	pageContainer.FocusSearchPageSearchField()
 
 	globalDeps.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		resultEvent := event
