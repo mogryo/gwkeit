@@ -1,43 +1,50 @@
 package pages
 
 import (
+	"slices"
+
 	"github.com/gwkeit/globaldeps"
+	"github.com/gwkeit/pages/additionpage"
+	"github.com/gwkeit/pages/allsnippetspage"
+	"github.com/gwkeit/pages/editpage"
+	"github.com/gwkeit/pages/searchpage"
 	"github.com/gwkeit/widgets"
 )
 
 type PageContainer struct {
-	searchPage      *SearchPage
-	additionPage    *AdditionPage
-	editPage        *EditPage
-	allSnippetsPage *AllSnippetsPage
+	searchPage      *searchpage.SearchPage
+	additionPage    *additionpage.AdditionPage
+	editPage        *editpage.EditPage
+	allSnippetsPage *allsnippetspage.AllSnippetsPage
 	logs            *widgets.LogsWidget
+	globalDeps      *globaldeps.GlobalDependencies
 }
 
 func NewPageContainer(globalDeps *globaldeps.GlobalDependencies) *PageContainer {
 	logs := widgets.NewLogsWidget(globalDeps.App)
-	additionPage := NewAdditionPage(globalDeps, logs)
-	searchPage := NewSearchPage(globalDeps, logs)
-	editPage := NewEditPage(globalDeps, logs)
-	allSnippetsPage := NewAllSnippetsPage(globalDeps, logs)
+	additionPage := additionpage.NewPage(globalDeps, logs)
+	searchPage := searchpage.NewPage(globalDeps, logs)
+	editPage := editpage.NewPage(globalDeps, logs)
+	allSnippetsPage := allsnippetspage.NewPage(globalDeps, logs)
 
 	go func() {
 		for {
 			select {
 			case payload := <-globalDeps.Chan:
 				switch payload.PageName {
-				case "Edit":
+				case editpage.PageName:
 					globalDeps.App.QueueUpdateDraw(func() {
 						editPage.SwitchToEditPage(payload.SnippetId)
 					})
-				case "Addition":
+				case additionpage.PageName:
 					globalDeps.App.QueueUpdateDraw(func() {
 						additionPage.SwitchToAdditionPage()
 					})
-				case "Main":
+				case searchpage.PageName:
 					globalDeps.App.QueueUpdateDraw(func() {
 						searchPage.SwitchToSearchPage()
 					})
-				case "AllSnippets":
+				case allsnippetspage.PageName:
 					globalDeps.App.QueueUpdateDraw(func() {
 						allSnippetsPage.SwitchToSnippetListPage()
 					})
@@ -51,12 +58,20 @@ func NewPageContainer(globalDeps *globaldeps.GlobalDependencies) *PageContainer 
 		searchPage:      searchPage,
 		editPage:        editPage,
 		allSnippetsPage: allSnippetsPage,
+		globalDeps:      globalDeps,
 	}
 
-	globalDeps.Pages.AddPage("Addition", pc.additionPage.frame, true, false)
-	globalDeps.Pages.AddPage("Main", pc.searchPage.frame, true, false)
-	globalDeps.Pages.AddPage("Edit", pc.editPage.frame, true, false)
-	globalDeps.Pages.AddPage("AllSnippets", pc.allSnippetsPage.frame, true, false)
+	globalDeps.Pages.AddPage(additionpage.PageName, pc.additionPage.Frame, true, false)
+	globalDeps.Pages.AddPage(searchpage.PageName, pc.searchPage.Frame, true, false)
+	globalDeps.Pages.AddPage(editpage.PageName, pc.editPage.Frame, true, false)
+	globalDeps.Pages.AddPage(allsnippetspage.PageName, pc.allSnippetsPage.Frame, true, false)
 
 	return pc
+}
+
+func (pc *PageContainer) FocusSearchPageSearchField() {
+	activePages := pc.globalDeps.Pages.GetPageNames(true)
+	if slices.Contains(activePages, searchpage.PageName) {
+		pc.searchPage.FocusSearchField()
+	}
 }

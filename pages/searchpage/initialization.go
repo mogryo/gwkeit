@@ -1,62 +1,16 @@
-package pages
+package searchpage
 
 import (
-	"context"
 	"strconv"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/cond"
-	"github.com/gwkeit/globaldeps"
-	"github.com/gwkeit/gwkeitdb"
 	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/uibuilder"
-	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
 )
-
-var (
-	shortcutRunes = []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'}
-)
-
-type SearchPage struct {
-	body              *tview.TextArea
-	searchField       *tview.InputField
-	resultList        *tview.List
-	description       *tview.TextArea
-	urls              *tview.TextArea
-	title             *tview.TextArea
-	grid              *tview.Grid
-	frame             *tview.Frame
-	searchType        *tview.DropDown
-	searchBox         *tview.Flex
-	searchCallback    func(ctx context.Context, words []string) []gwkeitdb.Snippet
-	selectedSnippetId int64
-	globalDeps        *globaldeps.GlobalDependencies
-	logs              *widgets.LogsWidget
-}
-
-func NewSearchPage(
-	globalDeps *globaldeps.GlobalDependencies,
-	logs *widgets.LogsWidget,
-) *SearchPage {
-	searchPage := &SearchPage{
-		selectedSnippetId: -1,
-		globalDeps:        globalDeps,
-		logs:              logs,
-	}
-
-	searchPage.initMetadataFields()
-	searchPage.initBody()
-	searchPage.initResultList()
-	searchPage.initSearchField()
-	searchPage.initGridLayout()
-	searchPage.initInputCapture()
-	searchPage.initFrame()
-
-	return searchPage
-}
 
 func (sp *SearchPage) initMetadataFields() {
 	sp.title = uibuilder.NewTextArea("", "")
@@ -222,25 +176,8 @@ func (sp *SearchPage) initInputCapture() {
 }
 
 func (sp *SearchPage) initFrame() {
-	sp.frame = tview.NewFrame(sp.grid).
+	sp.Frame = tview.NewFrame(sp.grid).
 		SetBorders(0, 0, 0, 0, 0, 0).
 		AddText("Search", true, tview.AlignCenter, tcell.ColorWhite)
-	sp.frame.SetBackgroundColor(tcell.ColorDefault)
-}
-
-func (sp *SearchPage) showSnippet(snippetId int64) {
-	snippet := sp.globalDeps.Repo.FindSnippet(sp.globalDeps.Ctx, snippetId)
-
-	sp.title.SetText(snippet.Title, true)
-	sp.body.SetText(snippet.Body, true)
-	sp.description.SetText(snippet.Description, true)
-	sp.urls.SetText(snippet.Url, true)
-}
-
-func (sp *SearchPage) SwitchToSearchPage() {
-	if sp.selectedSnippetId > -1 {
-		sp.showSnippet(sp.selectedSnippetId)
-	}
-	sp.globalDeps.Pages.SwitchToPage("Main")
-	sp.globalDeps.App.SetFocus(sp.searchField)
+	sp.Frame.SetBackgroundColor(tcell.ColorDefault)
 }
