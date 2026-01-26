@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/pages"
 	"github.com/gwkeit/repository"
 	"github.com/pressly/goose/v3"
@@ -25,7 +26,7 @@ func main() {
 	ctx := context.Background()
 
 	homeDir, _ := os.UserHomeDir()
-	dataSourceName := path.Join(homeDir, ".gwkeit", "gwkeit.db")
+	dataSourceName := path.Join(homeDir, configuration.AppDirectory, configuration.DbName)
 
 	// Attempt to create the .gwkeit directory.
 	// sql.Open does not immediately throw an error if such a path does not exist.
