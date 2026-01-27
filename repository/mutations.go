@@ -12,6 +12,7 @@ func (r *Repository) SaveSnippet(
 	ctx context.Context,
 	snippetInput *dto.Snippet,
 ) (int64, error) {
+	r.checkVersion(ctx)
 	tx, err := r.db.Begin()
 	if err != nil {
 		return -1, err
@@ -64,6 +65,7 @@ func (r *Repository) UpdateSnippet(
 	snippetId int64,
 	newSnippetData *dto.Snippet,
 ) error {
+	r.checkVersion(ctx)
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -102,6 +104,7 @@ func (r *Repository) updateSnippetTags(
 	snippetId int64,
 	newTagNames []string,
 ) error {
+	r.checkVersion(ctx)
 	existingSnippetTags, err := qtx.FindTagsBySnippetId(ctx, snippetId)
 	if err != nil {
 		return err
@@ -147,6 +150,7 @@ func (r *Repository) updateSnippetUrls(
 	snippetId int64,
 	newUrls []string,
 ) error {
+	r.checkVersion(ctx)
 	existingSnippetUrls, err := qtx.FindUrlsBySnippetId(ctx, snippetId)
 
 	unusedUrls := slicelib.DifferenceGetA(existingSnippetUrls, newUrls, func(url gwkeitdb.Url) string { return url.Url })
@@ -167,6 +171,7 @@ func (r *Repository) updateSnippetUrls(
 }
 
 func (r *Repository) deleteOrphanTags(ctx context.Context, qtx *gwkeitdb.Queries, tags []gwkeitdb.Tag) error {
+	r.checkVersion(ctx)
 	for _, tag := range tags {
 		exists, err := qtx.SnippetTagExists(ctx, tag.Tag)
 		if err != nil {
