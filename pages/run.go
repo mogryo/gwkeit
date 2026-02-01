@@ -4,15 +4,16 @@ import (
 	"context"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/repository"
 	"github.com/rivo/tview"
 )
 
-func Run(ctx context.Context, repo *repository.Repository) error {
+func Run(ctx context.Context, repo *repository.Repository, initialState *configuration.AppConfiguration) error {
 	app := tview.NewApplication()
 	globalDeps := globaldeps.New(ctx, app, repo)
-	pageContainer := NewPageContainer(globalDeps)
+	pageContainer := NewPageContainer(globalDeps, initialState)
 
 	globalDeps.App.SetRoot(globalDeps.Pages, true).EnableMouse(true)
 	pageContainer.searchPage.SwitchToSearchPage()

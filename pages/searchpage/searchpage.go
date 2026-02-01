@@ -3,6 +3,7 @@ package searchpage
 import (
 	"context"
 
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/gwkeitdb"
 	"github.com/gwkeit/widgets"
@@ -30,16 +31,19 @@ type SearchPage struct {
 	selectedSnippetId int64
 	globalDeps        *globaldeps.GlobalDependencies
 	logs              *widgets.LogsWidget
+	pageConf          configuration.ISearchPageConf
 }
 
 func NewPage(
 	globalDeps *globaldeps.GlobalDependencies,
+	pageState configuration.ISearchPageConf,
 	logs *widgets.LogsWidget,
 ) *SearchPage {
 	searchPage := &SearchPage{
 		selectedSnippetId: -1,
 		globalDeps:        globalDeps,
 		logs:              logs,
+		pageConf:          pageState,
 	}
 
 	searchPage.initMetadataFields()
