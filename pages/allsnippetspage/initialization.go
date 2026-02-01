@@ -22,7 +22,7 @@ func (asp *AllSnippetsPage) initCurrentPageInput() {
 
 		if value > 0 && value <= asp.pagesAmount {
 			asp.currentPage = value
-			asp.populateTable(asp.globalDeps.Ctx, asp.currentPage, asp.pageSize)
+			asp.populateTable(asp.globalDeps.Ctx)
 			return true
 		}
 
@@ -46,14 +46,15 @@ func (asp *AllSnippetsPage) initPageSizeInput() {
 		}
 
 		if value > 0 && value <= MaxPageSize {
-			asp.populateTable(asp.globalDeps.Ctx, asp.currentPage, asp.pageSize)
+			asp.pageSize = value
+			asp.pageConf.SetPageSize(asp.pageSize)
+			asp.populateTable(asp.globalDeps.Ctx)
 			return true
 		}
 
 		return false
 	})
-	asp.pageSizeInput.SetText(strconv.FormatInt(DefaultPageSize, 10))
-	asp.pageSize = DefaultPageSize
+	asp.pageSizeInput.SetText(strconv.FormatInt(asp.pageSize, 10))
 }
 
 func (asp *AllSnippetsPage) initTablePagination() *tview.Flex {

@@ -24,6 +24,7 @@ var embedMigrations embed.FS
 
 func main() {
 	ctx := context.Background()
+	defer ctx.Done()
 
 	homeDir, _ := os.UserHomeDir()
 	dataSourceName := path.Join(homeDir, configuration.AppDirectory, configuration.DbName)
@@ -49,7 +50,12 @@ func main() {
 	}
 
 	queries := gwkeitdb.New(db)
-	defer queries.Close()
+	defer func(queries *gwkeitdb.Queries) {
+		err := queries.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(queries)
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
@@ -58,10 +64,11 @@ func main() {
 	}(db)
 
 	r := repository.New(db, queries)
-	err = pages.Run(ctx, r)
+
+	initialState := configuration.ReadConfiguration()
+
+	err = pages.Run(ctx, r, initialState)
 	if err != nil {
 		panic(err)
 	}
-
-	ctx.Done()
 }

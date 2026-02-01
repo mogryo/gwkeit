@@ -10,14 +10,10 @@ import (
 	"github.com/rivo/tview"
 )
 
-func (asp *AllSnippetsPage) populateTable(
-	ctx context.Context,
-	page int64,
-	pageSize int64,
-) {
+func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 	asp.table.Clear()
 	asp.selectedSnippetId = -1
-	snippets, err := asp.globalDeps.Repo.FindSnippetsByPage(ctx, page, pageSize)
+	snippets, err := asp.globalDeps.Repo.FindSnippetsByPage(ctx, asp.currentPage, asp.pageSize)
 	if err != nil {
 		asp.logs.AddErrorLogs([]string{"error while fetching snippets"})
 	}
@@ -73,8 +69,7 @@ func (asp *AllSnippetsPage) populateTable(
 	}
 
 	snippetCount := asp.globalDeps.Repo.GetSnippetCount(asp.globalDeps.Ctx)
-	asp.pagesAmount = int64(math.Ceil(float64(snippetCount) / float64(pageSize)))
-	asp.pageSize = pageSize
+	asp.pagesAmount = int64(math.Ceil(float64(snippetCount) / float64(asp.pageSize)))
 	asp.totalSnippetAmountView.SetText(fmt.Sprintf("%d", snippetCount))
 	asp.totalPagesView.SetText(fmt.Sprintf("%d", asp.pagesAmount))
 }

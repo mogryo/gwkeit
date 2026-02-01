@@ -3,6 +3,7 @@ package pages
 import (
 	"slices"
 
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/pages/additionpage"
 	"github.com/gwkeit/pages/allsnippetspage"
@@ -20,12 +21,15 @@ type PageContainer struct {
 	globalDeps      *globaldeps.GlobalDependencies
 }
 
-func NewPageContainer(globalDeps *globaldeps.GlobalDependencies) *PageContainer {
+func NewPageContainer(
+	globalDeps *globaldeps.GlobalDependencies,
+	appState *configuration.AppConfiguration,
+) *PageContainer {
 	logs := widgets.NewLogsWidget(globalDeps.App)
 	additionPage := additionpage.NewPage(globalDeps, logs)
-	searchPage := searchpage.NewPage(globalDeps, logs)
+	searchPage := searchpage.NewPage(globalDeps, &appState.SearchPage, logs)
 	editPage := editpage.NewPage(globalDeps, logs)
-	allSnippetsPage := allsnippetspage.NewPage(globalDeps, logs)
+	allSnippetsPage := allsnippetspage.NewPage(globalDeps, logs, &appState.AllSnippets)
 
 	go func() {
 		for {
@@ -49,6 +53,8 @@ func NewPageContainer(globalDeps *globaldeps.GlobalDependencies) *PageContainer 
 						allSnippetsPage.SwitchToSnippetListPage()
 					})
 				}
+			case <-globalDeps.Ctx.Done():
+				return
 			}
 		}
 	}()

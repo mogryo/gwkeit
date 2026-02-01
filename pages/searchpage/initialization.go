@@ -1,6 +1,7 @@
 package searchpage
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -66,6 +67,7 @@ func (sp *SearchPage) initSearchField() {
 	sp.searchField.SetFieldStyle(uibuilder.InputBackgroundStyle)
 	sp.searchField.SetBackgroundColor(tcell.ColorDefault)
 
+	typeIndex := slices.Index([]string{"Tags", "Like", "FTS"}, sp.pageConf.GetSearchType())
 	sp.searchType = tview.NewDropDown().
 		SetLabel("[ctrl+o] Type: ").
 		SetOptions([]string{"Tags", "Like", "FTS"}, func(text string, index int) {
@@ -79,7 +81,7 @@ func (sp *SearchPage) initSearchField() {
 			}
 			executeSearch(sp.searchField.GetText())
 		}).
-		SetCurrentOption(0)
+		SetCurrentOption(cond.IfElse(typeIndex > -1, typeIndex, 0))
 	sp.searchType.SetFieldStyle(uibuilder.InputBackgroundStyle).
 		SetLabelStyle(uibuilder.InputBackgroundStyle).
 		SetFieldBackgroundColor(tcell.ColorDefault).

@@ -1,6 +1,7 @@
 package allsnippetspage
 
 import (
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/gwkeitdb"
 	"github.com/gwkeit/uibuilder"
@@ -26,15 +27,19 @@ type AllSnippetsPage struct {
 	pageSizeInput          *tview.InputField
 	snippets               []gwkeitdb.Snippet
 	selectedSnippetId      int64
+	pageConf               configuration.IAllSnippetsConf
 }
 
 const (
-	MaxPageSize     = 30
-	DefaultPageSize = 10
-	PageName        = "AllSnippets"
+	MaxPageSize = 30
+	PageName    = "AllSnippets"
 )
 
-func NewPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWidget) *AllSnippetsPage {
+func NewPage(
+	globalDeps *globaldeps.GlobalDependencies,
+	logs *widgets.LogsWidget,
+	pageConf configuration.IAllSnippetsConf,
+) *AllSnippetsPage {
 	asp := &AllSnippetsPage{
 		globalDeps:             globalDeps,
 		title:                  uibuilder.NewTextArea("", ""),
@@ -43,7 +48,8 @@ func NewPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWidget
 		totalSnippetAmountView: uibuilder.NewTextView("Total items: 0"),
 		totalPagesView:         uibuilder.NewTextView("Total pages: 0"),
 		logs:                   logs,
-		pageSize:               DefaultPageSize,
+		pageConf:               pageConf,
+		pageSize:               pageConf.GetPageSize(),
 		selectedSnippetId:      -1,
 	}
 
