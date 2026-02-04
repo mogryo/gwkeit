@@ -7,9 +7,15 @@ import (
 	"github.com/rivo/tview"
 )
 
+type ShortcutDescription struct {
+	Key         string
+	Description string
+}
+
 type DepsChanPayload struct {
-	PageName  string
-	SnippetId int64
+	PageName     string
+	SnippetId    int64
+	ShortcutList []ShortcutDescription
 }
 
 type GlobalDependencies struct {
@@ -36,4 +42,8 @@ func New(
 
 func (gd *GlobalDependencies) GoToEditPage(snippetId int64) {
 	gd.Chan <- DepsChanPayload{PageName: "Edit", SnippetId: snippetId}
+}
+
+func (gd *GlobalDependencies) ShowShortcutModal(shortcutList []ShortcutDescription) {
+	gd.Chan <- DepsChanPayload{PageName: "Modal", ShortcutList: shortcutList}
 }
