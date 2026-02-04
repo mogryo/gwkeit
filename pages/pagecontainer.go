@@ -9,6 +9,7 @@ import (
 	"github.com/gwkeit/pages/allsnippetspage"
 	"github.com/gwkeit/pages/editpage"
 	"github.com/gwkeit/pages/searchpage"
+	"github.com/gwkeit/pages/shortcutmodal"
 	"github.com/gwkeit/widgets"
 )
 
@@ -19,6 +20,7 @@ type PageContainer struct {
 	allSnippetsPage *allsnippetspage.AllSnippetsPage
 	logs            *widgets.LogsWidget
 	globalDeps      *globaldeps.GlobalDependencies
+	modal           *shortcutmodal.ShortcutModal
 }
 
 func NewPageContainer(
@@ -30,6 +32,7 @@ func NewPageContainer(
 	searchPage := searchpage.NewPage(globalDeps, &appState.SearchPage, logs)
 	editPage := editpage.NewPage(globalDeps, logs)
 	allSnippetsPage := allsnippetspage.NewPage(globalDeps, logs, &appState.AllSnippets)
+	modalPage := shortcutmodal.NewModal(globalDeps)
 
 	go func() {
 		for {
@@ -52,6 +55,10 @@ func NewPageContainer(
 					globalDeps.App.QueueUpdateDraw(func() {
 						allSnippetsPage.SwitchToSnippetListPage()
 					})
+				case shortcutmodal.ModalName:
+					globalDeps.App.QueueUpdateDraw(func() {
+						modalPage.SwitchToShortcutPage(payload.ShortcutList)
+					})
 				}
 			case <-globalDeps.Ctx.Done():
 				return
@@ -64,6 +71,7 @@ func NewPageContainer(
 		searchPage:      searchPage,
 		editPage:        editPage,
 		allSnippetsPage: allSnippetsPage,
+		modal:           modalPage,
 		globalDeps:      globalDeps,
 	}
 
@@ -71,6 +79,7 @@ func NewPageContainer(
 	globalDeps.Pages.AddPage(searchpage.PageName, pc.searchPage.Frame, true, false)
 	globalDeps.Pages.AddPage(editpage.PageName, pc.editPage.Frame, true, false)
 	globalDeps.Pages.AddPage(allsnippetspage.PageName, pc.allSnippetsPage.Frame, true, false)
+	globalDeps.Pages.AddPage(shortcutmodal.ModalName, pc.modal.Frame, true, true)
 
 	return pc
 }

@@ -7,11 +7,20 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/cond"
+	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/uibuilder"
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
 )
+
+var shortcutDescription = []globaldeps.ShortcutDescription{
+	{Key: "ctrl+F", Description: "Focus search field"},
+	{Key: "ctrl+L", Description: "Focus result list"},
+	{Key: "ctrl+O", Description: "Focus search type"},
+	{Key: "ctrl+C", Description: "Copy body"},
+	{Key: "ctrl+E", Description: "Edit snippet"},
+}
 
 func (sp *SearchPage) initMetadataFields() {
 	sp.title = uibuilder.NewTextArea("", "")
@@ -69,7 +78,7 @@ func (sp *SearchPage) initSearchField() {
 
 	typeIndex := slices.Index([]string{"Tags", "Like", "FTS"}, sp.pageConf.GetSearchType())
 	sp.searchType = tview.NewDropDown().
-		SetLabel("[ctrl+o] Type: ").
+		SetLabel("Type: ").
 		SetOptions([]string{"Tags", "Like", "FTS"}, func(text string, index int) {
 			switch text {
 			case "Tags":
@@ -127,9 +136,9 @@ func (sp *SearchPage) initGridLayout() {
 		SetRows(3, 11).
 		SetColumns(0, 50).
 		SetBorders(false).
-		AddItem(uibuilder.NewWidget("[ctr+f] Search:", sp.searchBox), 0, 0, 1, 1, 0, 0, false).
+		AddItem(uibuilder.NewWidget("Search:", sp.searchBox), 0, 0, 1, 1, 0, 0, false).
 		AddItem(uibuilder.NewWidget("Logs:", sp.logs.View), 0, 1, 2, 1, 0, 0, false).
-		AddItem(uibuilder.NewWidget("[ctr+l] List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
+		AddItem(uibuilder.NewWidget("List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
 	metadataFlex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(uibuilder.NewWidget("Title:", sp.title), 0, 1, false).
 		AddItem(uibuilder.NewWidget("Description:", sp.description), 0, 3, false).
@@ -144,6 +153,11 @@ func (sp *SearchPage) initGridLayout() {
 func (sp *SearchPage) initInputCapture() {
 	sp.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		resultEvent := event
+
+		if event.Rune() == '?' {
+			sp.globalDeps.ShowShortcutModal(shortcutDescription)
+			resultEvent = nil
+		}
 
 		switch event.Key() {
 		case tcell.KeyCtrlF:
@@ -180,6 +194,6 @@ func (sp *SearchPage) initInputCapture() {
 func (sp *SearchPage) initFrame() {
 	sp.Frame = tview.NewFrame(sp.grid).
 		SetBorders(0, 0, 0, 0, 0, 0).
-		AddText("Search", true, tview.AlignCenter, tcell.ColorWhite)
+		AddText("Search", true, tview.AlignCenter, tcell.ColorDefault)
 	sp.Frame.SetBackgroundColor(tcell.ColorDefault)
 }

@@ -4,9 +4,17 @@ import (
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/uibuilder"
 	"github.com/rivo/tview"
 )
+
+var shortcutDescription = []globaldeps.ShortcutDescription{
+	{"ctrl+P", "Focus page number field"},
+	{"ctrl+I", "Focus page size field"},
+	{"ctrl+T", "Focus table"},
+	{"ctrl+E", "Edit selected snippet"},
+}
 
 func (asp *AllSnippetsPage) initCurrentPageInput() {
 	asp.currentPageInput = uibuilder.NewInputField("", "").SetAcceptanceFunc(func(textToCheck string, lastChar rune) bool {
@@ -61,8 +69,8 @@ func (asp *AllSnippetsPage) initTablePagination() *tview.Flex {
 	tablePaginationFlex := tview.NewFlex().SetDirection(tview.FlexColumn).
 		AddItem(uibuilder.NewWidget("Total items", asp.totalSnippetAmountView), 0, 1, false).
 		AddItem(uibuilder.NewWidget("Total pages", asp.totalPagesView), 0, 1, false).
-		AddItem(uibuilder.NewWidget("[ctrl+i] Items per page: ", asp.pageSizeInput), 0, 2, false).
-		AddItem(uibuilder.NewWidget("[ctrl+p] Page: ", asp.currentPageInput), 0, 2, false)
+		AddItem(uibuilder.NewWidget("Items per page: ", asp.pageSizeInput), 0, 2, false).
+		AddItem(uibuilder.NewWidget("Page: ", asp.currentPageInput), 0, 2, false)
 	tablePaginationFlex.SetBorderPadding(0, 0, 0, 0).SetBackgroundColor(tcell.ColorDefault)
 
 	return tablePaginationFlex
@@ -73,7 +81,7 @@ func (asp *AllSnippetsPage) initGridLayout(snippetDataFlex *tview.Flex, tablePag
 		SetRows(14, 0, 3).
 		SetColumns(0, 50).
 		SetBorders(false).
-		AddItem(uibuilder.NewWidget("[ctrl+t] Snippets:", asp.table), 0, 0, 2, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget("Snippets:", asp.table), 0, 0, 2, 1, 0, 100, false).
 		AddItem(uibuilder.NewWidget("Logs:", asp.logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(snippetDataFlex, 1, 1, 2, 1, 0, 100, false).
 		AddItem(tablePaginationFlex, 2, 0, 1, 1, 0, 100, false)
@@ -83,7 +91,7 @@ func (asp *AllSnippetsPage) initGridLayout(snippetDataFlex *tview.Flex, tablePag
 func (asp *AllSnippetsPage) initFrame() {
 	asp.Frame = tview.NewFrame(asp.grid).
 		SetBorders(0, 0, 0, 0, 0, 0).
-		AddText("[::b]All snippets[::-]", true, tview.AlignCenter, tcell.ColorWhite)
+		AddText("[::b]All snippets[::-]", true, tview.AlignCenter, tcell.ColorDefault)
 	asp.Frame.SetBackgroundColor(tcell.ColorDefault)
 }
 
@@ -117,6 +125,11 @@ func (asp *AllSnippetsPage) initSnippetDataFlex() *tview.Flex {
 func (asp *AllSnippetsPage) initInputCapture() {
 	asp.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		resultEvent := event
+
+		if event.Rune() == '?' {
+			asp.globalDeps.ShowShortcutModal(shortcutDescription)
+			resultEvent = nil
+		}
 
 		switch event.Key() {
 		case tcell.KeyCtrlP:

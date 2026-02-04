@@ -7,11 +7,22 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/dto"
+	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
 )
+
+var shortcutDescription = []globaldeps.ShortcutDescription{
+	{"ctrl+B", "Focus code field"},
+	{"ctrl+T", "Focus title field"},
+	{"ctrl+D", "Focus description field"},
+	{"ctrl+U", "Focus urls field"},
+	{"ctrl+S", "Save snippet"},
+	{"ctrl+N", "Discard unsaved changes"},
+	{"ctrl+C", "Copy snippet body"},
+}
 
 func (ep *EditPage) initMetadataFields() {
 	ep.body = uibuilder.NewTextArea("", "")
@@ -26,11 +37,11 @@ func (ep *EditPage) initLayoutGrid() {
 		SetColumns(0, 50).
 		SetBorders(false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget("[ctrl+t] Title:", ep.title), 0, 1, false).
-		AddItem(uibuilder.NewWidget("[ctrl+d] Description:", ep.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget("[ctrl+u] URLs:", ep.urls), 0, 3, false)
+		AddItem(uibuilder.NewWidget("Title:", ep.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget("Description:", ep.description), 0, 3, false).
+		AddItem(uibuilder.NewWidget("URLs:", ep.urls), 0, 3, false)
 
-	ep.grid.AddItem(uibuilder.NewWidget("[ctrl+b] Code:", ep.body), 0, 0, 2, 1, 0, 100, false).
+	ep.grid.AddItem(uibuilder.NewWidget("Code:", ep.body), 0, 0, 2, 1, 0, 100, false).
 		AddItem(uibuilder.NewWidget("Logs:", ep.logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(flex, 1, 1, 1, 1, 0, 100, false)
 	ep.grid.SetBackgroundColor(tcell.ColorDefault)
@@ -39,13 +50,18 @@ func (ep *EditPage) initLayoutGrid() {
 func (ep *EditPage) initFrame() {
 	ep.Frame = tview.NewFrame(ep.grid).
 		SetBorders(0, 0, 0, 0, 0, 0).
-		AddText("Edit snippet", true, tview.AlignCenter, tcell.ColorWhite)
+		AddText("Edit snippet", true, tview.AlignCenter, tcell.ColorDefault)
 	ep.Frame.SetBackgroundColor(tcell.ColorDefault)
 }
 
 func (ep *EditPage) initInputCapture() {
 	ep.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		resultEvent := event
+
+		if event.Rune() == '?' {
+			ep.globalDeps.ShowShortcutModal(shortcutDescription)
+			resultEvent = nil
+		}
 
 		switch event.Key() {
 		case tcell.KeyCtrlB:
