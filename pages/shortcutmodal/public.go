@@ -1,19 +1,20 @@
 package shortcutmodal
 
 import (
-	"github.com/gwkeit/globaldeps"
+	"github.com/gwkeit/apptools"
+	"github.com/gwkeit/configuration"
 )
 
-func (sm *ShortcutModal) SwitchToShortcutPage(shortcutList []globaldeps.ShortcutDescription) {
+func (sm *ShortcutModal) SwitchToPage(shortcutList []apptools.ShortcutDescription) {
 	sm.table.Clear()
 	for i, entry := range shortcutList {
 		sm.addKeyCell(i, entry.Key)
 		sm.addDescriptionCell(i, entry.Description)
 		sm.addSeparatorRow(i)
 	}
-	sm.globalDeps.Pages.ShowPage(ModalName)
+	sm.tools.ShowPage(configuration.ShortcutModal)
 }
 
 func (sm *ShortcutModal) HideModalPage() {
-	sm.globalDeps.Pages.HidePage(ModalName)
+	sm.tools.HidePage(configuration.ShortcutModal)
 }

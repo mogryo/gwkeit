@@ -1,12 +1,10 @@
 package editpage
 
 import (
-	"github.com/gwkeit/globaldeps"
+	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
 )
-
-const PageName = "Edit"
 
 type EditPage struct {
 	snippetId   int64
@@ -16,14 +14,14 @@ type EditPage struct {
 	urls        *tview.TextArea
 	grid        *tview.Grid
 	Frame       *tview.Frame
-	globalDeps  *globaldeps.GlobalDependencies
+	tools       *apptools.Tools
 	logs        *widgets.LogsWidget
 }
 
-func NewPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWidget) *EditPage {
+func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget) *EditPage {
 	ep := &EditPage{
-		globalDeps: globalDeps,
-		logs:       logs,
+		tools: tools,
+		logs:  logs,
 	}
 
 	ep.initMetadataFields()

@@ -4,12 +4,13 @@ import (
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gwkeit/globaldeps"
+	"github.com/gwkeit/apptools"
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/uibuilder"
 	"github.com/rivo/tview"
 )
 
-var shortcutDescription = []globaldeps.ShortcutDescription{
+var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+P", "Focus page number field"},
 	{"ctrl+I", "Focus page size field"},
 	{"ctrl+T", "Focus table"},
@@ -30,7 +31,7 @@ func (asp *AllSnippetsPage) initCurrentPageInput() {
 
 		if value > 0 && value <= asp.pagesAmount {
 			asp.currentPage = value
-			asp.populateTable(asp.globalDeps.Ctx)
+			asp.populateTable(asp.tools.Ctx)
 			return true
 		}
 
@@ -56,7 +57,7 @@ func (asp *AllSnippetsPage) initPageSizeInput() {
 		if value > 0 && value <= MaxPageSize {
 			asp.pageSize = value
 			asp.pageConf.SetPageSize(asp.pageSize)
-			asp.populateTable(asp.globalDeps.Ctx)
+			asp.populateTable(asp.tools.Ctx)
 			return true
 		}
 
@@ -104,7 +105,7 @@ func (asp *AllSnippetsPage) initTable() {
 			if row == 0 {
 				return
 			}
-			snippet := asp.globalDeps.Repo.FindSnippet(asp.globalDeps.Ctx, asp.snippets[row-1].ID)
+			snippet := asp.tools.Repo.FindSnippet(asp.tools.Ctx, asp.snippets[row-1].ID)
 			asp.selectedSnippetId = snippet.ID
 			asp.title.SetText(snippet.Title, false)
 			asp.description.SetText(snippet.Description, false)
@@ -127,27 +128,27 @@ func (asp *AllSnippetsPage) initInputCapture() {
 		resultEvent := event
 
 		if event.Rune() == '?' {
-			asp.globalDeps.ShowShortcutModal(shortcutDescription)
+			asp.tools.GoToPage(configuration.ShortcutModal, shortcutDescription)
 			resultEvent = nil
 		}
 
 		switch event.Key() {
 		case tcell.KeyCtrlP:
-			asp.globalDeps.App.SetFocus(asp.currentPageInput)
+			asp.tools.Focus(asp.currentPageInput)
 			resultEvent = nil
 		case tcell.KeyCtrlI:
-			asp.globalDeps.App.SetFocus(asp.pageSizeInput)
+			asp.tools.Focus(asp.pageSizeInput)
 			resultEvent = nil
 		case tcell.KeyCtrlT:
 			if asp.table.GetRowCount() > 1 {
-				asp.globalDeps.App.SetFocus(asp.table)
+				asp.tools.Focus(asp.table)
 				asp.table.SetSelectable(true, false)
 				asp.table.Select(1, 0)
 			}
 			resultEvent = nil
 		case tcell.KeyCtrlE:
 			if asp.selectedSnippetId > -1 {
-				asp.globalDeps.GoToEditPage(asp.selectedSnippetId)
+				asp.tools.GoToPage(configuration.EditPage, asp.selectedSnippetId)
 			} else {
 				asp.logs.AddErrorLogs([]string{"No snippet selected."})
 			}

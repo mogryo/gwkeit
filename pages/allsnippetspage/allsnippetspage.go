@@ -1,8 +1,8 @@
 package allsnippetspage
 
 import (
+	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/configuration"
-	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/gwkeitdb"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
@@ -16,7 +16,7 @@ type AllSnippetsPage struct {
 	description            *tview.TextArea
 	urls                   *tview.TextArea
 	table                  *tview.Table
-	globalDeps             *globaldeps.GlobalDependencies
+	tools                  *apptools.Tools
 	logs                   *widgets.LogsWidget
 	totalSnippetAmountView *tview.TextView
 	totalPagesView         *tview.TextView
@@ -32,16 +32,15 @@ type AllSnippetsPage struct {
 
 const (
 	MaxPageSize = 30
-	PageName    = "AllSnippets"
 )
 
 func NewPage(
-	globalDeps *globaldeps.GlobalDependencies,
+	tools *apptools.Tools,
 	logs *widgets.LogsWidget,
 	pageConf configuration.IAllSnippetsConf,
 ) *AllSnippetsPage {
 	asp := &AllSnippetsPage{
-		globalDeps:             globalDeps,
+		tools:                  tools,
 		title:                  uibuilder.NewTextArea("", ""),
 		description:            uibuilder.NewTextArea("", ""),
 		urls:                   uibuilder.NewTextArea("", ""),

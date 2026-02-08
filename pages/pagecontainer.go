@@ -1,16 +1,15 @@
 package pages
 
 import (
-	"slices"
-
+	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/configuration"
-	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/pages/additionpage"
 	"github.com/gwkeit/pages/allsnippetspage"
 	"github.com/gwkeit/pages/editpage"
 	"github.com/gwkeit/pages/searchpage"
 	"github.com/gwkeit/pages/shortcutmodal"
 	"github.com/gwkeit/widgets"
+	"github.com/rivo/tview"
 )
 
 type PageContainer struct {
@@ -19,52 +18,22 @@ type PageContainer struct {
 	editPage        *editpage.EditPage
 	allSnippetsPage *allsnippetspage.AllSnippetsPage
 	logs            *widgets.LogsWidget
-	globalDeps      *globaldeps.GlobalDependencies
 	modal           *shortcutmodal.ShortcutModal
+	Pages           *tview.Pages
 }
 
+type PageSwitcher struct{}
+
 func NewPageContainer(
-	globalDeps *globaldeps.GlobalDependencies,
+	tools *apptools.Tools,
 	appState *configuration.AppConfiguration,
 ) *PageContainer {
-	logs := widgets.NewLogsWidget(globalDeps.App)
-	additionPage := additionpage.NewPage(globalDeps, logs)
-	searchPage := searchpage.NewPage(globalDeps, &appState.SearchPage, logs)
-	editPage := editpage.NewPage(globalDeps, logs)
-	allSnippetsPage := allsnippetspage.NewPage(globalDeps, logs, &appState.AllSnippets)
-	modalPage := shortcutmodal.NewModal(globalDeps)
-
-	go func() {
-		for {
-			select {
-			case payload := <-globalDeps.Chan:
-				switch payload.PageName {
-				case editpage.PageName:
-					globalDeps.App.QueueUpdateDraw(func() {
-						editPage.SwitchToEditPage(payload.SnippetId)
-					})
-				case additionpage.PageName:
-					globalDeps.App.QueueUpdateDraw(func() {
-						additionPage.SwitchToAdditionPage()
-					})
-				case searchpage.PageName:
-					globalDeps.App.QueueUpdateDraw(func() {
-						searchPage.SwitchToSearchPage()
-					})
-				case allsnippetspage.PageName:
-					globalDeps.App.QueueUpdateDraw(func() {
-						allSnippetsPage.SwitchToSnippetListPage()
-					})
-				case shortcutmodal.ModalName:
-					globalDeps.App.QueueUpdateDraw(func() {
-						modalPage.SwitchToShortcutPage(payload.ShortcutList)
-					})
-				}
-			case <-globalDeps.Ctx.Done():
-				return
-			}
-		}
-	}()
+	logs := widgets.NewLogsWidget(tools)
+	additionPage := additionpage.NewPage(tools, logs)
+	searchPage := searchpage.NewPage(tools, &appState.SearchPage, logs)
+	editPage := editpage.NewPage(tools, logs)
+	allSnippetsPage := allsnippetspage.NewPage(tools, logs, &appState.AllSnippets)
+	modalPage := shortcutmodal.NewModal(tools)
 
 	pc := &PageContainer{
 		additionPage:    additionPage,
@@ -72,21 +41,33 @@ func NewPageContainer(
 		editPage:        editPage,
 		allSnippetsPage: allSnippetsPage,
 		modal:           modalPage,
-		globalDeps:      globalDeps,
+		Pages:           tview.NewPages(),
 	}
+	tools.RegisterGoToPage(pc.goToPage)
+	tools.RegisterSwitchToPage(pc.Pages.SwitchToPage)
+	tools.RegisterShowPage(pc.Pages.ShowPage)
+	tools.RegisterHidePage(pc.Pages.HidePage)
 
-	globalDeps.Pages.AddPage(additionpage.PageName, pc.additionPage.Frame, true, false)
-	globalDeps.Pages.AddPage(searchpage.PageName, pc.searchPage.Frame, true, false)
-	globalDeps.Pages.AddPage(editpage.PageName, pc.editPage.Frame, true, false)
-	globalDeps.Pages.AddPage(allsnippetspage.PageName, pc.allSnippetsPage.Frame, true, false)
-	globalDeps.Pages.AddPage(shortcutmodal.ModalName, pc.modal.Frame, true, true)
+	pc.Pages.AddPage(configuration.AdditionPage.String(), pc.additionPage.Frame, true, false)
+	pc.Pages.AddPage(configuration.SearchPage.String(), pc.searchPage.Frame, true, false)
+	pc.Pages.AddPage(configuration.EditPage.String(), pc.editPage.Frame, true, false)
+	pc.Pages.AddPage(configuration.AllSnippetsPage.String(), pc.allSnippetsPage.Frame, true, false)
+	pc.Pages.AddPage(configuration.ShortcutModal.String(), pc.modal.Frame, true, true)
 
 	return pc
 }
 
-func (pc *PageContainer) FocusSearchPageSearchField() {
-	activePages := pc.globalDeps.Pages.GetPageNames(true)
-	if slices.Contains(activePages, searchpage.PageName) {
-		pc.searchPage.FocusSearchField()
+func (pc *PageContainer) goToPage(pageName configuration.PageName, payload any) {
+	switch pageName {
+	case configuration.AdditionPage:
+		pc.additionPage.SwitchToPage()
+	case configuration.AllSnippetsPage:
+		pc.allSnippetsPage.SwitchToPage()
+	case configuration.EditPage:
+		pc.editPage.SwitchToPage(payload.(int64))
+	case configuration.SearchPage:
+		pc.searchPage.SwitchToPage()
+	case configuration.ShortcutModal:
+		pc.modal.SwitchToPage(payload.([]apptools.ShortcutDescription))
 	}
 }

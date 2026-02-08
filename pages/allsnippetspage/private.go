@@ -13,7 +13,7 @@ import (
 func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 	asp.table.Clear()
 	asp.selectedSnippetId = -1
-	snippets, err := asp.globalDeps.Repo.FindSnippetsByPage(ctx, asp.currentPage, asp.pageSize)
+	snippets, err := asp.tools.Repo.FindSnippetsByPage(ctx, asp.currentPage, asp.pageSize)
 	if err != nil {
 		asp.logs.AddErrorLogs([]string{"error while fetching snippets"})
 	}
@@ -68,7 +68,7 @@ func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 		)
 	}
 
-	snippetCount := asp.globalDeps.Repo.GetSnippetCount(asp.globalDeps.Ctx)
+	snippetCount := asp.tools.Repo.GetSnippetCount(asp.tools.Ctx)
 	asp.pagesAmount = int64(math.Ceil(float64(snippetCount) / float64(asp.pageSize)))
 	asp.totalSnippetAmountView.SetText(fmt.Sprintf("%d", snippetCount))
 	asp.totalPagesView.SetText(fmt.Sprintf("%d", asp.pagesAmount))

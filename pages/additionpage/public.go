@@ -1,6 +1,8 @@
 package additionpage
 
-func (ap *AdditionPage) SwitchToAdditionPage() () {
-	ap.globalDeps.Pages.SwitchToPage(PageName)
-	ap.globalDeps.App.SetFocus(ap.body)
+import "github.com/gwkeit/configuration"
+
+func (ap *AdditionPage) SwitchToPage() () {
+	ap.tools.SwitchToPage(configuration.AdditionPage)
+	ap.tools.Focus(ap.body)
 }
