@@ -2,22 +2,21 @@ package shortcutmodal
 
 import (
 	"github.com/gdamore/tcell/v2"
-	"github.com/gwkeit/globaldeps"
+	"github.com/gwkeit/apptools"
+	"github.com/gwkeit/configuration"
 	"github.com/rivo/tview"
 )
 
-const ModalName = "Modal"
-
 type ShortcutModal struct {
-	Frame      *tview.Flex
-	table      *tview.Table
-	globalDeps *globaldeps.GlobalDependencies
+	Frame *tview.Flex
+	table *tview.Table
+	tools *apptools.Tools
 }
 
-func NewModal(globalDeps *globaldeps.GlobalDependencies) *ShortcutModal {
+func NewModal(tools *apptools.Tools) *ShortcutModal {
 	mp := &ShortcutModal{
-		globalDeps: globalDeps,
-		table:      tview.NewTable(),
+		tools: tools,
+		table: tview.NewTable(),
 	}
 	mp.table.SetBorder(true).SetBackgroundColor(tcell.ColorDefault)
 
@@ -35,8 +34,8 @@ func NewModal(globalDeps *globaldeps.GlobalDependencies) *ShortcutModal {
 		if event.Rune() == '?' || event.Key() == tcell.KeyEscape {
 			mp.HideModalPage()
 		} else {
-			mp.globalDeps.Pages.HidePage(ModalName)
-			mp.globalDeps.App.QueueEvent(event)
+			mp.tools.HidePage(configuration.ShortcutModal)
+			mp.tools.QueueEvent(event)
 		}
 
 		return nil

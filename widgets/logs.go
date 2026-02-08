@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/slicelib"
 	"github.com/rivo/tview"
 )
@@ -12,9 +13,9 @@ import (
 type LogType int
 
 const (
-	ERROR_MESSAGE LogType = iota
-	SUCCESS_MESSAGE
-	TIMESTAMP_MESSAGE
+	ErrorMessage LogType = iota
+	SuccessMessage
+	TimestampMessage
 )
 
 type LogsWidget struct {
@@ -22,14 +23,14 @@ type LogsWidget struct {
 	list []string
 }
 
-func NewLogsWidget(app *tview.Application) *LogsWidget {
+func NewLogsWidget(tools *apptools.Tools) *LogsWidget {
 	lw := &LogsWidget{}
 	lw.View = tview.NewTextView().
 		SetDynamicColors(true).
 		SetRegions(true).
 		SetWordWrap(true).
 		SetChangedFunc(func() {
-			app.Draw()
+			tools.RefreshScreen()
 		})
 	lw.View.SetBackgroundColor(tcell.ColorDefault)
 
@@ -39,7 +40,7 @@ func NewLogsWidget(app *tview.Application) *LogsWidget {
 
 func (lw *LogsWidget) addTimestampLog() {
 	timestamp := "[grey]" + time.Now().Format("2006-01-02 15:04:05") + "[-]"
-	lw.addLog(timestamp, TIMESTAMP_MESSAGE)
+	lw.addLog(timestamp, TimestampMessage)
 }
 
 func (lw *LogsWidget) AddErrorLogs(logs []string) {
@@ -49,7 +50,7 @@ func (lw *LogsWidget) AddErrorLogs(logs []string) {
 
 	lw.addTimestampLog()
 	for _, log := range logs {
-		lw.addLog(log, ERROR_MESSAGE)
+		lw.addLog(log, ErrorMessage)
 	}
 	lw.View.SetText(strings.Join(slicelib.TakeLast(lw.list, 12), "\n"))
 }
@@ -61,7 +62,7 @@ func (lw *LogsWidget) AddSuccessLogs(logs []string) {
 
 	lw.addTimestampLog()
 	for _, log := range logs {
-		lw.addLog(log, SUCCESS_MESSAGE)
+		lw.addLog(log, SuccessMessage)
 	}
 	lw.View.SetText(strings.Join(slicelib.TakeLast(lw.list, 12), "\n"))
 }
@@ -69,11 +70,11 @@ func (lw *LogsWidget) AddSuccessLogs(logs []string) {
 func (lw *LogsWidget) addLog(message string, logType LogType) {
 	messageWithType := message
 	switch logType {
-	case ERROR_MESSAGE:
+	case ErrorMessage:
 		messageWithType = "[#ff4689]  " + messageWithType + "[-]"
-	case SUCCESS_MESSAGE:
+	case SuccessMessage:
 		messageWithType = "[#a6e22e]  " + messageWithType + "[-]"
-	case TIMESTAMP_MESSAGE:
+	case TimestampMessage:
 		messageWithType = "[grey]" + messageWithType + "[-]"
 	}
 	lw.list = append(lw.list, messageWithType)

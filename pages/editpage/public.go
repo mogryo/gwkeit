@@ -1,7 +1,9 @@
 package editpage
 
-func (ep *EditPage) SwitchToEditPage(snippetId int64) {
+import "github.com/gwkeit/configuration"
+
+func (ep *EditPage) SwitchToPage(snippetId int64) {
 	ep.loadSnippet(snippetId)
-	ep.globalDeps.Pages.SwitchToPage("Edit")
-	ep.globalDeps.App.SetFocus(ep.body)
+	ep.tools.SwitchToPage(configuration.EditPage)
+	ep.tools.Focus(ep.body)
 }

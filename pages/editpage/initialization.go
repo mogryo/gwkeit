@@ -6,15 +6,16 @@ import (
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/apptools"
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/dto"
-	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
 )
 
-var shortcutDescription = []globaldeps.ShortcutDescription{
+var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+B", "Focus code field"},
 	{"ctrl+T", "Focus title field"},
 	{"ctrl+D", "Focus description field"},
@@ -59,22 +60,22 @@ func (ep *EditPage) initInputCapture() {
 		resultEvent := event
 
 		if event.Rune() == '?' {
-			ep.globalDeps.ShowShortcutModal(shortcutDescription)
+			ep.tools.GoToPage(configuration.ShortcutModal, shortcutDescription)
 			resultEvent = nil
 		}
 
 		switch event.Key() {
 		case tcell.KeyCtrlB:
-			ep.globalDeps.App.SetFocus(ep.body)
+			ep.tools.Focus(ep.body)
 			resultEvent = nil
 		case tcell.KeyCtrlT:
-			ep.globalDeps.App.SetFocus(ep.title)
+			ep.tools.Focus(ep.title)
 			resultEvent = nil
 		case tcell.KeyCtrlD:
-			ep.globalDeps.App.SetFocus(ep.description)
+			ep.tools.Focus(ep.description)
 			resultEvent = nil
 		case tcell.KeyCtrlU:
-			ep.globalDeps.App.SetFocus(ep.urls)
+			ep.tools.Focus(ep.urls)
 			resultEvent = nil
 		case tcell.KeyCtrlS:
 			snippetDto := dto.NewSnippetFromFields(
@@ -89,8 +90,8 @@ func (ep *EditPage) initInputCapture() {
 				allErrorsWithTopic := slices.Insert(validationErrors, 0, "Update failed.")
 				ep.logs.AddErrorLogs(allErrorsWithTopic)
 			} else {
-				err := ep.globalDeps.Repo.UpdateSnippet(
-					ep.globalDeps.Ctx,
+				err := ep.tools.Repo.UpdateSnippet(
+					ep.tools.Ctx,
 					ep.snippetId,
 					snippetDto,
 				)

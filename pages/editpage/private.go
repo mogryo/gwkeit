@@ -2,7 +2,7 @@ package editpage
 
 func (ep *EditPage) loadSnippet(snippetId int64) {
 	ep.snippetId = snippetId
-	snippet := ep.globalDeps.Repo.FindSnippet(ep.globalDeps.Ctx, snippetId)
+	snippet := ep.tools.Repo.FindSnippet(ep.tools.Ctx, snippetId)
 
 	ep.body.SetText(snippet.Body, true)
 	ep.title.SetText(snippet.Title, true)

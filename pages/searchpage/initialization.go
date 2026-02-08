@@ -6,15 +6,16 @@ import (
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/cond"
-	"github.com/gwkeit/globaldeps"
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/uibuilder"
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
 )
 
-var shortcutDescription = []globaldeps.ShortcutDescription{
+var shortcutDescription = []apptools.ShortcutDescription{
 	{Key: "ctrl+F", Description: "Focus search field"},
 	{Key: "ctrl+L", Description: "Focus result list"},
 	{Key: "ctrl+O", Description: "Focus search type"},
@@ -45,7 +46,7 @@ func (sp *SearchPage) initSearchField() {
 
 		sp.resultList.Clear()
 		if len(filteredConditions) > 0 {
-			foundSnippets := sp.searchCallback(sp.globalDeps.Ctx, filteredConditions)
+			foundSnippets := sp.searchCallback(sp.tools.Ctx, filteredConditions)
 			for i, snippet := range foundSnippets {
 				sp.resultList.AddItem(
 					snippet.Title,
@@ -66,7 +67,7 @@ func (sp *SearchPage) initSearchField() {
 				return
 			}
 
-			sp.globalDeps.App.SetFocus(sp.resultList)
+			sp.tools.Focus(sp.resultList)
 			index := sp.resultList.GetCurrentItem()
 			onSelect := sp.resultList.GetSelectedFunc()
 			mainText, secText := sp.resultList.GetItemText(index)
@@ -82,11 +83,11 @@ func (sp *SearchPage) initSearchField() {
 		SetOptions([]string{"Tags", "Like", "FTS"}, func(text string, index int) {
 			switch text {
 			case "Tags":
-				sp.searchCallback = sp.globalDeps.Repo.FindSnippetsByTags
+				sp.searchCallback = sp.tools.Repo.FindSnippetsByTags
 			case "Like":
-				sp.searchCallback = sp.globalDeps.Repo.FindSnippetsByLikeTags
+				sp.searchCallback = sp.tools.Repo.FindSnippetsByLikeTags
 			case "FTS":
-				sp.searchCallback = sp.globalDeps.Repo.FindSnippetsByFts
+				sp.searchCallback = sp.tools.Repo.FindSnippetsByFts
 			}
 			executeSearch(sp.searchField.GetText())
 		}).
@@ -118,7 +119,7 @@ func (sp *SearchPage) initResultList() {
 				panic(err)
 			}
 
-			snippet := sp.globalDeps.Repo.FindSnippet(sp.globalDeps.Ctx, id)
+			snippet := sp.tools.Repo.FindSnippet(sp.tools.Ctx, id)
 
 			sp.title.SetText(snippet.Title, true)
 			sp.body.SetText(snippet.Body, true)
@@ -155,16 +156,16 @@ func (sp *SearchPage) initInputCapture() {
 		resultEvent := event
 
 		if event.Rune() == '?' {
-			sp.globalDeps.ShowShortcutModal(shortcutDescription)
+			sp.tools.GoToPage(configuration.ShortcutModal, shortcutDescription)
 			resultEvent = nil
 		}
 
 		switch event.Key() {
 		case tcell.KeyCtrlF:
-			sp.globalDeps.App.SetFocus(sp.searchField)
+			sp.tools.Focus(sp.searchField)
 			resultEvent = nil
 		case tcell.KeyCtrlL:
-			sp.globalDeps.App.SetFocus(sp.resultList)
+			sp.tools.Focus(sp.resultList)
 			resultEvent = nil
 		case tcell.KeyCtrlC:
 			bodyText := sp.body.GetText()
@@ -177,13 +178,13 @@ func (sp *SearchPage) initInputCapture() {
 			resultEvent = nil
 		case tcell.KeyCtrlE:
 			if sp.selectedSnippetId > -1 {
-				sp.globalDeps.GoToEditPage(sp.selectedSnippetId)
+				sp.tools.GoToPage(configuration.EditPage, sp.selectedSnippetId)
 			} else {
 				sp.logs.AddErrorLogs([]string{"No snippet selected."})
 			}
 			resultEvent = nil
 		case tcell.KeyCtrlO:
-			sp.globalDeps.App.SetFocus(sp.searchType)
+			sp.tools.Focus(sp.searchType)
 			resultEvent = nil
 		}
 

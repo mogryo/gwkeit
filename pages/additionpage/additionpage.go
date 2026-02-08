@@ -1,12 +1,10 @@
 package additionpage
 
 import (
-	"github.com/gwkeit/globaldeps"
+	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
 )
-
-const PageName = "Addition"
 
 type AdditionPage struct {
 	body        *tview.TextArea
@@ -15,14 +13,14 @@ type AdditionPage struct {
 	urls        *tview.TextArea
 	grid        *tview.Grid
 	Frame       *tview.Frame
-	globalDeps  *globaldeps.GlobalDependencies
+	tools       *apptools.Tools
 	logs        *widgets.LogsWidget
 }
 
-func NewPage(globalDeps *globaldeps.GlobalDependencies, logs *widgets.LogsWidget) *AdditionPage {
+func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget) *AdditionPage {
 	additionPage := &AdditionPage{
-		globalDeps: globalDeps,
-		logs:       logs,
+		tools: tools,
+		logs:  logs,
 	}
 
 	additionPage.initMetadataFields()

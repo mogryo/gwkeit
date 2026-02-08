@@ -5,14 +5,15 @@ import (
 	"slices"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/apptools"
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/dto"
-	"github.com/gwkeit/globaldeps"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
 )
 
-var shortcutDescription = []globaldeps.ShortcutDescription{
+var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+B", "Focus code field"},
 	{"ctrl+T", "Focus title field"},
 	{"ctrl+D", "Focus description field"},
@@ -57,22 +58,22 @@ func (ap *AdditionPage) initInputCapture() {
 		resultEvent := event
 
 		if event.Rune() == '?' {
-			ap.globalDeps.ShowShortcutModal(shortcutDescription)
+			ap.tools.GoToPage(configuration.ShortcutModal, shortcutDescription)
 			resultEvent = nil
 		}
 
 		switch event.Key() {
 		case tcell.KeyCtrlB:
-			ap.globalDeps.App.SetFocus(ap.body)
+			ap.tools.Focus(ap.body)
 			resultEvent = nil
 		case tcell.KeyCtrlT:
-			ap.globalDeps.App.SetFocus(ap.title)
+			ap.tools.Focus(ap.title)
 			resultEvent = nil
 		case tcell.KeyCtrlD:
-			ap.globalDeps.App.SetFocus(ap.description)
+			ap.tools.Focus(ap.description)
 			resultEvent = nil
 		case tcell.KeyCtrlU:
-			ap.globalDeps.App.SetFocus(ap.urls)
+			ap.tools.Focus(ap.urls)
 			resultEvent = nil
 		case tcell.KeyCtrlS:
 			snippetDto := dto.NewSnippetFromFields(
@@ -87,13 +88,13 @@ func (ap *AdditionPage) initInputCapture() {
 				allErrorsWithTopic := slices.Insert(validationErrors, 0, "Save failed.")
 				ap.logs.AddErrorLogs(allErrorsWithTopic)
 			} else {
-				snippetId, err := ap.globalDeps.Repo.SaveSnippet(ap.globalDeps.Ctx, snippetDto)
+				snippetId, err := ap.tools.Repo.SaveSnippet(ap.tools.Ctx, snippetDto)
 				if err != nil {
 					ap.logs.AddErrorLogs([]string{err.Error()})
 				} else {
 					ap.logs.AddSuccessLogs([]string{fmt.Sprintf("Snippet '%s' saved successfully.", snippetDto.Title)})
 					ap.clearFields()
-					ap.globalDeps.GoToEditPage(snippetId)
+					ap.tools.GoToPage(configuration.EditPage, snippetId)
 				}
 			}
 			resultEvent = nil
