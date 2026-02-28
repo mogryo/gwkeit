@@ -52,11 +52,22 @@ func ValidateTitle(title string) []string {
 	return validationErrors
 }
 
+func ValidateLanguage(lang string) []string {
+	validationErrors := make([]string, 0)
+
+	if len(lang) == 0 {
+		validationErrors = append(validationErrors, "Language cannot be empty.")
+	}
+
+	return validationErrors
+}
+
 func ValidateSnippet(snippet *dto.Snippet) []string {
 	tagErrors := ValidateTags(snippet.Tags)
 	urlErrors := ValidateUrls(snippet.UrlList)
 	bodyErrors := ValidateBody(snippet.Body)
 	titleErrors := ValidateTitle(snippet.Title)
+	languageErrors := ValidateLanguage(snippet.Language)
 
-	return slicelib.Concat(bodyErrors, titleErrors, tagErrors, urlErrors)
+	return slicelib.Concat(bodyErrors, titleErrors, tagErrors, urlErrors, languageErrors)
 }

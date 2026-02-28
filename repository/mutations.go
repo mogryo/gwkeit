@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/gwkeit/dto"
 	"github.com/gwkeit/gwkeitdb"
@@ -26,6 +27,7 @@ func (r *Repository) SaveSnippet(
 			Body:        snippetInput.Body,
 			Description: snippetInput.Description,
 			Url:         snippetInput.UrlText,
+			Language:    sql.NullString{String: snippetInput.Language, Valid: snippetInput.Language != ""},
 		},
 	)
 
@@ -80,6 +82,7 @@ func (r *Repository) UpdateSnippet(
 			Title:       newSnippetData.Title,
 			Body:        newSnippetData.Body,
 			Description: newSnippetData.Description,
+			Language:    sql.NullString{String: newSnippetData.Language, Valid: newSnippetData.Language != ""},
 		},
 	)
 	if err != nil {

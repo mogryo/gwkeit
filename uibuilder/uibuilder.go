@@ -65,3 +65,20 @@ func NewWidget(title string, content tview.Primitive) *tview.Flex {
 
 	return fieldFlex
 }
+
+func NewDropDown(title string) *tview.DropDown {
+	dropDown := tview.NewDropDown().
+		SetLabel(title).
+		SetLabelColor(tcell.ColorDarkSeaGreen)
+
+	dropDown.SetFieldStyle(InputBackgroundStyle).
+		SetLabelStyle(InputBackgroundStyle).
+		SetFieldBackgroundColor(tcell.ColorDefault).
+		SetListStyles(
+			tcell.StyleDefault.Background(tcell.ColorDefault),
+			tcell.StyleDefault.Background(tcell.ColorGreenYellow),
+		).
+		SetBackgroundColor(tcell.ColorDefault)
+
+	return dropDown
+}

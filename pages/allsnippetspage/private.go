@@ -6,7 +6,7 @@ import (
 	"math"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gwkeit/cond"
+	"github.com/gwkeit/utils"
 	"github.com/rivo/tview"
 )
 
@@ -45,7 +45,7 @@ func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 				SetExpansion(1),
 		)
 
-		createdTimestamp := cond.IfElse(
+		createdTimestamp := utils.IfElse(
 			snippet.CreatedAt.Valid,
 			snippet.CreatedAt.Time.Format("2006-01-02 15:04:05"),
 			"",
@@ -56,7 +56,7 @@ func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 			tview.NewTableCell(createdTimestamp).SetAlign(tview.AlignLeft).SetBackgroundColor(tcell.ColorDefault),
 		)
 
-		updatedTimestamp := cond.IfElse(
+		updatedTimestamp := utils.IfElse(
 			snippet.UpdatedAt.Valid,
 			snippet.UpdatedAt.Time.Format("2006-01-02 15:04:05"),
 			"",

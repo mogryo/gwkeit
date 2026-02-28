@@ -47,6 +47,7 @@ func NewPageContainer(
 	tools.RegisterSwitchToPage(pc.Pages.SwitchToPage)
 	tools.RegisterShowPage(pc.Pages.ShowPage)
 	tools.RegisterHidePage(pc.Pages.HidePage)
+	tools.RegisterGetFrontPage(pc.Pages.GetFrontPage)
 
 	pc.Pages.AddPage(configuration.AdditionPage.String(), pc.additionPage.Frame, true, false)
 	pc.Pages.AddPage(configuration.SearchPage.String(), pc.searchPage.Frame, true, false)

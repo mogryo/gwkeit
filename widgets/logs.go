@@ -15,6 +15,7 @@ type LogType int
 const (
 	ErrorMessage LogType = iota
 	SuccessMessage
+	InfoMessage
 	TimestampMessage
 )
 
@@ -67,6 +68,17 @@ func (lw *LogsWidget) AddSuccessLogs(logs []string) {
 	lw.View.SetText(strings.Join(slicelib.TakeLast(lw.list, 12), "\n"))
 }
 
+func (lw *LogsWidget) AddInfoLogs(logs []string) {
+	if len(logs) == 0 {
+		return
+	}
+	lw.addTimestampLog()
+	for _, log := range logs {
+		lw.addLog(log, InfoMessage)
+	}
+	lw.View.SetText(strings.Join(slicelib.TakeLast(lw.list, 12), "\n"))
+}
+
 func (lw *LogsWidget) addLog(message string, logType LogType) {
 	messageWithType := message
 	switch logType {
@@ -74,6 +86,8 @@ func (lw *LogsWidget) addLog(message string, logType LogType) {
 		messageWithType = "[#ff4689]  " + messageWithType + "[-]"
 	case SuccessMessage:
 		messageWithType = "[#a6e22e]  " + messageWithType + "[-]"
+	case InfoMessage:
+		messageWithType = "[#0087ff]  " + messageWithType + "[-]"
 	case TimestampMessage:
 		messageWithType = "[grey]" + messageWithType + "[-]"
 	}

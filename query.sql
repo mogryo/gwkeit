@@ -2,7 +2,7 @@
 SELECT COUNT(*) FROM snippets;
 
 -- name: InsertSnippet :one
-INSERT INTO snippets (title, body, description, url) VALUES (?, ?, ?, ?) RETURNING id;
+INSERT INTO snippets (title, body, description, url, language) VALUES (?, ?, ?, ?, ?) RETURNING id;
 
 -- name: InsertTag :one
 INSERT INTO tags (tag) VALUES (?) RETURNING id;
@@ -14,7 +14,7 @@ INSERT INTO urls (url, snippet_id) VALUES (?, ?) RETURNING id;
 INSERT INTO snippets_tags (snippet_id, tag_id) VALUES (?, ?);
 
 -- name: UpdateSnippet :exec
-UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, updated_at = current_timestamp WHERE id = ?;
+UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, language = ?, updated_at = current_timestamp WHERE id = ?;
 
 -- name: FindSnippetsPaginated :many
 SELECT s.*
