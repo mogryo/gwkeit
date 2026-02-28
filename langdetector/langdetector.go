@@ -5,7 +5,7 @@ import (
 )
 
 func Detect(text string) configuration.Language {
-	detectedLanguages := make([]configuration.Language, len(configuration.LanguagesStrings))
+	detectedLanguages := make([]configuration.Language, 0)
 	if IsKotlin(text) {
 		detectedLanguages = append(detectedLanguages, configuration.Kotlin)
 	}
