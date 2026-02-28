@@ -90,11 +90,7 @@ func IsPython(src string) bool {
 
 		trim := strings.TrimSpace(line)
 
-		// Quick reject: common non-Python tokens for your use-case
-		if strings.Contains(trim, "{") || strings.Contains(trim, "}") || strings.HasSuffix(trim, ";") {
-			return false
-		}
-		if strings.HasPrefix(trim, "function ") { // JS
+		if strings.HasPrefix(trim, "function ") || strings.Contains(trim, "=>") { // JS/TS hints
 			return false
 		}
 
