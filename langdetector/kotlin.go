@@ -51,7 +51,7 @@ func IsKotlin(src string) bool {
 	// Quick rejections for other languages to reduce false positives.
 	reRejectPython := regexp.MustCompile(`^\s*(def|class|elif|except|with)\b|\:\s*(#.*)?$`)
 	reRejectRuby := regexp.MustCompile(`^\s*(end|elsif|unless|begin|rescue)\b|@` + ident + `|\.\.|:\w+\b`)
-	reRejectGo := regexp.MustCompile(`^\s*(package|func)\b|:=`)
+	reRejectGo := regexp.MustCompile(`^\s*func\b|:=`)
 	reRejectJS := regexp.MustCompile(`^\s*function\b`)
 
 	// naive single-line string removal for bracket counting

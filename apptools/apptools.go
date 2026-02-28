@@ -74,5 +74,9 @@ func (t *Tools) QueueUpdateDraw(f func()) {
 }
 
 func (t *Tools) GetFrontPage() (name string, item tview.Primitive) {
+	if t.getFrontPage == nil {
+		panic("GetFrontPage function is not registered")
+	}
+
 	return t.getFrontPage()
 }

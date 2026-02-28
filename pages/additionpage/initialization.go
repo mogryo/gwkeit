@@ -90,6 +90,7 @@ func (ap *AdditionPage) initInputCapture() {
 			resultEvent = nil
 		case tcell.KeyCtrlL:
 			ap.tools.Focus(ap.language)
+			resultEvent = nil
 		case tcell.KeyCtrlS:
 			_, selectedLanguage := ap.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(

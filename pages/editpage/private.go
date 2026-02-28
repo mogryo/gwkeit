@@ -16,6 +16,9 @@ func (ep *EditPage) loadSnippet(snippetId int64) {
 	ep.urls.SetText(snippet.Url, true)
 	if snippet.Language.Valid {
 		index := slices.Index(configuration.LanguagesStrings, snippet.Language.String)
+		if index < 0 {
+			index = 0
+		}
 		ep.setLanguageOptionProgrammatically(index)
 	} else {
 		ep.setLanguageOptionProgrammatically(0)

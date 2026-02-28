@@ -75,7 +75,7 @@ func IsRuby(src string) bool {
 	// Quick rejects for other languages to reduce false positives.
 	reRejectGo := regexp.MustCompile(`^\s*package\b|\bfunc\b|:=`)
 	reRejectPython := regexp.MustCompile(`^\s*(def\s+` + ident + `\s*\(.*\)\s*:\s*$|class\s+` + ident + `.*:\s*$|elif\b|except\b|with\b)|#.*$`)
-	reRejectKotlin := regexp.MustCompile(`^\s*(fun|val|var|when)\b`)
+	reRejectKotlin := regexp.MustCompile(`^\s*(fun|val|when)\b`)
 	reRejectTS := regexp.MustCompile(`^\s*(import|export|interface|type)\b|=>`)
 
 	// naive single-line string removal for bracket counting

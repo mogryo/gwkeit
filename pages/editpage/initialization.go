@@ -92,6 +92,7 @@ func (ep *EditPage) initInputCapture() {
 			resultEvent = nil
 		case tcell.KeyCtrlL:
 			ep.tools.Focus(ep.language)
+			resultEvent = nil
 		case tcell.KeyCtrlS:
 			_, selectedLanguage := ep.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(

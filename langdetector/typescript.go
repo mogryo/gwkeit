@@ -55,11 +55,11 @@ func IsTypeScript(src string) bool {
 	reExpr := regexp.MustCompile(`^` + indent + `.+;?\s*$`)
 
 	// Quick rejects for other languages to reduce false positives.
-	reRejectPython := regexp.MustCompile(`^\s*(def|class|elif|except|with)\b|:\s*(#.*)?$`)
+	reRejectPython := regexp.MustCompile(`^\s*(def|class|elif|except|with)\b`)
 	reRejectRuby := regexp.MustCompile(`^\s*(end|elsif|unless|begin|rescue)\b|@` + ident + `|\.\.|:\w+\b`)
 	reRejectGo := regexp.MustCompile(`^\s*package\b|\bfunc\b|:=`)
 	// Kotlin hint: `fun name(` or `val name`
-	reRejectKotlin := regexp.MustCompile(`^\s*(fun|val|var|when)\b`)
+	reRejectKotlin := regexp.MustCompile(`^\s*(fun|val|when)\b`)
 
 	// naive single-line string removal for bracket counting
 	reSingleQuoted := regexp.MustCompile(`'(?:\\.|[^'\\])*'`)

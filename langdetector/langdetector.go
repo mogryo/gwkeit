@@ -5,20 +5,25 @@ import (
 )
 
 func Detect(text string) configuration.Language {
+	detectedLanguages := make([]configuration.Language, len(configuration.LanguagesStrings))
 	if IsKotlin(text) {
-		return configuration.Kotlin
+		detectedLanguages = append(detectedLanguages, configuration.Kotlin)
 	}
 	if IsGo(text) {
-		return configuration.Go
+		detectedLanguages = append(detectedLanguages, configuration.Go)
 	}
 	if IsPython(text) {
-		return configuration.Python
+		detectedLanguages = append(detectedLanguages, configuration.Python)
 	}
 	if IsRuby(text) {
-		return configuration.Ruby
+		detectedLanguages = append(detectedLanguages, configuration.Ruby)
 	}
 	if IsTypeScript(text) {
-		return configuration.TypeScript
+		detectedLanguages = append(detectedLanguages, configuration.TypeScript)
+	}
+
+	if len(detectedLanguages) == 1 {
+		return detectedLanguages[0]
 	}
 
 	return configuration.Text
