@@ -132,15 +132,34 @@ func (ap *AdditionPage) initInputCapture() {
 }
 
 func (ap *AdditionPage) initLangDetector() {
+	ticker := time.NewTicker(time.Second)
 	go func() {
-		for range time.Tick(time.Second) {
-			frontPage, _ := ap.tools.GetFrontPage()
-			if frontPage == configuration.AdditionPage.String() && !ap.isLangManuallySelected.Load() && !ap.language.HasFocus() {
-				detectedLang := langdetector.Detect(ap.body.GetText())
-				langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				var shouldDetect bool
+				var bodyText string
+
 				ap.tools.QueueUpdateDraw(func() {
-					ap.setLanguageOptionProgrammatically(langIndex + 1)
+					frontPage, _ := ap.tools.GetFrontPage()
+					shouldDetect = frontPage == configuration.AdditionPage.String() &&
+						!ap.isLangManuallySelected.Load() &&
+						!ap.language.HasFocus()
+					if shouldDetect {
+						bodyText = ap.body.GetText()
+					}
 				})
+
+				if shouldDetect {
+					detectedLang := langdetector.Detect(bodyText)
+					langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+					ap.tools.QueueUpdateDraw(func() {
+						ap.setLanguageOptionProgrammatically(langIndex + 1)
+					})
+				}
+			case <-ap.tools.Ctx.Done():
+				return
 			}
 		}
 	}()

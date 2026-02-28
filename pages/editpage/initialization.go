@@ -142,15 +142,34 @@ func (ep *EditPage) initInputCapture() {
 }
 
 func (ep *EditPage) initLangDetector() {
+	ticker := time.NewTicker(time.Second)
 	go func() {
-		for range time.Tick(time.Second) {
-			frontPage, _ := ep.tools.GetFrontPage()
-			if frontPage == configuration.EditPage.String() && !ep.isLangManuallySelected.Load() && !ep.language.HasFocus() {
-				detectedLang := langdetector.Detect(ep.body.GetText())
-				langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				var shouldDetect bool
+				var bodyText string
+
 				ep.tools.QueueUpdateDraw(func() {
-					ep.setLanguageOptionProgrammatically(langIndex + 1)
+					frontPage, _ := ep.tools.GetFrontPage()
+					shouldDetect = frontPage == configuration.AdditionPage.String() &&
+						!ep.isLangManuallySelected.Load() &&
+						!ep.language.HasFocus()
+					if shouldDetect {
+						bodyText = ep.body.GetText()
+					}
 				})
+
+				if shouldDetect {
+					detectedLang := langdetector.Detect(bodyText)
+					langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+					ep.tools.QueueUpdateDraw(func() {
+						ep.setLanguageOptionProgrammatically(langIndex + 1)
+					})
+				}
+			case <-ep.tools.Ctx.Done():
+				return
 			}
 		}
 	}()
