@@ -3,6 +3,7 @@ package additionpage
 import (
 	"fmt"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -14,6 +15,8 @@ import (
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
 )
+
+var once sync.Once
 
 var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+B", "Focus code field"},
@@ -132,35 +135,37 @@ func (ap *AdditionPage) initInputCapture() {
 }
 
 func (ap *AdditionPage) initLangDetector() {
-	ticker := time.NewTicker(time.Second)
-	go func() {
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				var shouldDetect bool
-				var bodyText string
+	once.Do(func() {
+		ticker := time.NewTicker(time.Second)
+		go func() {
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					var shouldDetect bool
+					var bodyText string
 
-				ap.tools.QueueUpdateDraw(func() {
-					frontPage, _ := ap.tools.GetFrontPage()
-					shouldDetect = frontPage == configuration.AdditionPage.String() &&
-						!ap.isLangManuallySelected.Load() &&
-						!ap.language.HasFocus()
-					if shouldDetect {
-						bodyText = ap.body.GetText()
-					}
-				})
-
-				if shouldDetect {
-					detectedLang := langdetector.Detect(bodyText)
-					langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
 					ap.tools.QueueUpdateDraw(func() {
-						ap.setLanguageOptionProgrammatically(langIndex + 1)
+						frontPage, _ := ap.tools.GetFrontPage()
+						shouldDetect = frontPage == configuration.AdditionPage.String() &&
+							!ap.isLangManuallySelected.Load() &&
+							!ap.language.HasFocus()
+						if shouldDetect {
+							bodyText = ap.body.GetText()
+						}
 					})
+
+					if shouldDetect {
+						detectedLang := langdetector.Detect(bodyText)
+						langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+						ap.tools.QueueUpdateDraw(func() {
+							ap.setLanguageOptionProgrammatically(langIndex + 1)
+						})
+					}
+				case <-ap.tools.Ctx.Done():
+					return
 				}
-			case <-ap.tools.Ctx.Done():
-				return
 			}
-		}
-	}()
+		}()
+	})
 }
