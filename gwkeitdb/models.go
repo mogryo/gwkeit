@@ -16,6 +16,7 @@ type Snippet struct {
 	Url         string
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	Language    sql.NullString
 }
 
 type SnippetsFt struct {

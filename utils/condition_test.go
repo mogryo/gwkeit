@@ -1,4 +1,4 @@
-package cond
+package utils
 
 import (
 	"testing"

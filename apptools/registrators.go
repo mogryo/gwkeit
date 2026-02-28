@@ -20,3 +20,7 @@ func (t *Tools) RegisterHidePage(hidePage func(pageName string) *tview.Pages) {
 func (t *Tools) RegisterGoToPage(goToPage func(pageName configuration.PageName, payload any)) {
 	t.goToPage = goToPage
 }
+
+func (t *Tools) RegisterGetFrontPage(getFrontPage func() (name string, item tview.Primitive)) {
+	t.getFrontPage = getFrontPage
+}

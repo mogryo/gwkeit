@@ -7,6 +7,7 @@ type Snippet struct {
 	Title       string
 	Description string
 	UrlText     string
+	Language    string
 	UrlList     []string
 	Tags        []string
 }
@@ -16,6 +17,7 @@ func NewSnippetFromFields(
 	bodyField string,
 	descriptionField string,
 	urlsField string,
+	languageField string,
 ) *Snippet {
 	return &Snippet{
 		Title:       transform.CleanupString(titleField),
@@ -24,5 +26,6 @@ func NewSnippetFromFields(
 		UrlList:     transform.FieldUrlsToUrlList(urlsField),
 		UrlText:     transform.CleanupString(urlsField),
 		Description: transform.CleanupString(descriptionField),
+		Language:    transform.CleanupString(languageField),
 	}
 }

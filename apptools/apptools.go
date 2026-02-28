@@ -22,6 +22,7 @@ type Tools struct {
 	switchToPage func(pageName string) *tview.Pages
 	showPage     func(pageName string) *tview.Pages
 	hidePage     func(pageName string) *tview.Pages
+	getFrontPage func() (name string, item tview.Primitive)
 }
 
 func New(
@@ -66,4 +67,12 @@ func (t *Tools) QueueEvent(event tcell.Event) {
 
 func (t *Tools) RefreshScreen() {
 	t.app.Draw()
+}
+
+func (t *Tools) QueueUpdateDraw(f func()) {
+	t.app.QueueUpdateDraw(f)
+}
+
+func (t *Tools) GetFrontPage() (name string, item tview.Primitive) {
+	return t.getFrontPage()
 }

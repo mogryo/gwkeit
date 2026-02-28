@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/dto"
+	"github.com/gwkeit/langdetector"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
@@ -20,6 +22,7 @@ var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+T", "Focus title field"},
 	{"ctrl+D", "Focus description field"},
 	{"ctrl+U", "Focus urls field"},
+	{"ctrl+L", "Focus language field"},
 	{"ctrl+S", "Save snippet"},
 	{"ctrl+N", "Discard unsaved changes"},
 	{"ctrl+C", "Copy snippet body"},
@@ -30,6 +33,15 @@ func (ep *EditPage) initMetadataFields() {
 	ep.title = uibuilder.NewTextArea("", "")
 	ep.description = uibuilder.NewTextArea("", "")
 	ep.urls = uibuilder.NewTextArea("", "")
+	ep.language = uibuilder.NewDropDown("")
+	ep.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
+	ep.language.SetSelectedFunc(func(_ string, _ int) {
+		if !ep.isLangSelectFuncSuppressed.Load() {
+			ep.isLangManuallySelected.Store(true)
+			ep.logs.AddInfoLogs([]string{"Language detect is disabled"})
+		}
+	})
+	ep.setLanguageOptionProgrammatically(0)
 }
 
 func (ep *EditPage) initLayoutGrid() {
@@ -40,7 +52,8 @@ func (ep *EditPage) initLayoutGrid() {
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(uibuilder.NewWidget("Title:", ep.title), 0, 1, false).
 		AddItem(uibuilder.NewWidget("Description:", ep.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget("URLs:", ep.urls), 0, 3, false)
+		AddItem(uibuilder.NewWidget("URLs:", ep.urls), 0, 2, false).
+		AddItem(uibuilder.NewWidget("Language:", ep.language), 3, 1, false)
 
 	ep.grid.AddItem(uibuilder.NewWidget("Code:", ep.body), 0, 0, 2, 1, 0, 100, false).
 		AddItem(uibuilder.NewWidget("Logs:", ep.logs.View), 0, 1, 1, 1, 0, 100, false).
@@ -77,12 +90,16 @@ func (ep *EditPage) initInputCapture() {
 		case tcell.KeyCtrlU:
 			ep.tools.Focus(ep.urls)
 			resultEvent = nil
+		case tcell.KeyCtrlL:
+			ep.tools.Focus(ep.language)
 		case tcell.KeyCtrlS:
+			_, selectedLanguage := ep.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(
 				ep.title.GetText(),
 				ep.body.GetText(),
 				ep.description.GetText(),
 				ep.urls.GetText(),
+				selectedLanguage,
 			)
 			validationErrors := validator.ValidateSnippet(snippetDto)
 
@@ -105,6 +122,8 @@ func (ep *EditPage) initInputCapture() {
 		case tcell.KeyCtrlN:
 			if ep.snippetId > -1 {
 				ep.loadSnippet(ep.snippetId)
+				ep.isLangManuallySelected.Store(false)
+				ep.logs.AddInfoLogs([]string{"Language detect is enabled"})
 			}
 			resultEvent = nil
 		case tcell.KeyCtrlC:
@@ -119,4 +138,19 @@ func (ep *EditPage) initInputCapture() {
 
 		return resultEvent
 	})
+}
+
+func (ep *EditPage) initLangDetector() {
+	go func() {
+		for range time.Tick(time.Second) {
+			frontPage, _ := ep.tools.GetFrontPage()
+			if frontPage == configuration.EditPage.String() && !ep.isLangManuallySelected.Load() && !ep.language.HasFocus() {
+				detectedLang := langdetector.Detect(ep.body.GetText())
+				langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+				ep.tools.QueueUpdateDraw(func() {
+					ep.setLanguageOptionProgrammatically(langIndex + 1)
+				})
+			}
+		}
+	}()
 }

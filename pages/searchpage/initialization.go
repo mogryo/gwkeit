@@ -7,10 +7,10 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/apptools"
-	"github.com/gwkeit/cond"
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/uibuilder"
+	"github.com/gwkeit/utils"
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
 )
@@ -51,7 +51,7 @@ func (sp *SearchPage) initSearchField() {
 				sp.resultList.AddItem(
 					snippet.Title,
 					strconv.FormatInt(snippet.ID, 10),
-					cond.IfElse(i < len(shortcutRunes), shortcutRunes[i], 0),
+					utils.IfElse(i < len(shortcutRunes), shortcutRunes[i], 0),
 					nil,
 				)
 			}
@@ -91,7 +91,7 @@ func (sp *SearchPage) initSearchField() {
 			}
 			executeSearch(sp.searchField.GetText())
 		}).
-		SetCurrentOption(cond.IfElse(typeIndex > -1, typeIndex, 0))
+		SetCurrentOption(utils.IfElse(typeIndex > -1, typeIndex, 0))
 	sp.searchType.SetFieldStyle(uibuilder.InputBackgroundStyle).
 		SetLabelStyle(uibuilder.InputBackgroundStyle).
 		SetFieldBackgroundColor(tcell.ColorDefault).

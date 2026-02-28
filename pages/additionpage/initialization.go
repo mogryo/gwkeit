@@ -3,11 +3,13 @@ package additionpage
 import (
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/dto"
+	"github.com/gwkeit/langdetector"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
@@ -18,6 +20,7 @@ var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+T", "Focus title field"},
 	{"ctrl+D", "Focus description field"},
 	{"ctrl+U", "Focus urls field"},
+	{"ctrl+L", "Focus language field"},
 	{"ctrl+S", "Save snippet"},
 	{"ctrl+N", "Clear fields"},
 }
@@ -37,7 +40,8 @@ func (ap *AdditionPage) initGridLayout() {
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(uibuilder.NewWidget("Title:", ap.title), 0, 1, false).
 		AddItem(uibuilder.NewWidget("Description:", ap.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget("URLs:", ap.urls), 0, 3, false)
+		AddItem(uibuilder.NewWidget("URLs:", ap.urls), 0, 2, false).
+		AddItem(uibuilder.NewWidget("Language:", ap.language), 3, 1, false)
 
 	ap.grid.
 		AddItem(uibuilder.NewWidget("Code:", ap.body), 0, 0, 2, 1, 0, 100, false).
@@ -51,6 +55,15 @@ func (ap *AdditionPage) initMetadataFields() {
 	ap.title = uibuilder.NewTextArea("", "")
 	ap.description = uibuilder.NewTextArea("", "")
 	ap.urls = uibuilder.NewTextArea("", "")
+	ap.language = uibuilder.NewDropDown("")
+	ap.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
+	ap.language.SetSelectedFunc(func(_ string, _ int) {
+		if !ap.isLangSelectFuncSuppressed.Load() {
+			ap.isLangManuallySelected.Store(true)
+			ap.logs.AddInfoLogs([]string{"Language detect is disabled"})
+		}
+	})
+	ap.setLanguageOptionProgrammatically(0)
 }
 
 func (ap *AdditionPage) initInputCapture() {
@@ -75,12 +88,16 @@ func (ap *AdditionPage) initInputCapture() {
 		case tcell.KeyCtrlU:
 			ap.tools.Focus(ap.urls)
 			resultEvent = nil
+		case tcell.KeyCtrlL:
+			ap.tools.Focus(ap.language)
 		case tcell.KeyCtrlS:
+			_, selectedLanguage := ap.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(
 				ap.title.GetText(),
 				ap.body.GetText(),
 				ap.description.GetText(),
 				ap.urls.GetText(),
+				selectedLanguage,
 			)
 			validationErrors := validator.ValidateSnippet(snippetDto)
 
@@ -103,9 +120,27 @@ func (ap *AdditionPage) initInputCapture() {
 			ap.title.SetText("", true)
 			ap.description.SetText("", true)
 			ap.urls.SetText("", true)
+			ap.isLangManuallySelected.Store(false)
+			ap.setLanguageOptionProgrammatically(0)
+			ap.logs.AddInfoLogs([]string{"Language detect is enabled"})
 			resultEvent = nil
 		}
 
 		return resultEvent
 	})
+}
+
+func (ap *AdditionPage) initLangDetector() {
+	go func() {
+		for range time.Tick(time.Second) {
+			frontPage, _ := ap.tools.GetFrontPage()
+			if frontPage == configuration.AdditionPage.String() && !ap.isLangManuallySelected.Load() && !ap.language.HasFocus() {
+				detectedLang := langdetector.Detect(ap.body.GetText())
+				langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+				ap.tools.QueueUpdateDraw(func() {
+					ap.setLanguageOptionProgrammatically(langIndex + 1)
+				})
+			}
+		}
+	}()
 }

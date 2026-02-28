@@ -71,7 +71,7 @@ func (q *Queries) DeleteTagByTag(ctx context.Context, tag string) error {
 }
 
 const findSnippetDataById = `-- name: FindSnippetDataById :one
-SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at, group_concat(COALESCE(t.tag, ''), ' ') as tag_list, group_concat(COALESCE(u.url, ''), ' ') as url_list
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at, s.language, group_concat(COALESCE(t.tag, ''), ' ') as tag_list, group_concat(COALESCE(u.url, ''), ' ') as url_list
 FROM snippets s
 LEFT JOIN snippets_tags st ON s.id = st.snippet_id
 LEFT JOIN tags t ON st.tag_id = t.id
@@ -88,6 +88,7 @@ type FindSnippetDataByIdRow struct {
 	Url         string
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	Language    sql.NullString
 	TagList     string
 	UrlList     string
 }
@@ -103,6 +104,7 @@ func (q *Queries) FindSnippetDataById(ctx context.Context, id int64) (FindSnippe
 		&i.Url,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Language,
 		&i.TagList,
 		&i.UrlList,
 	)
@@ -110,7 +112,7 @@ func (q *Queries) FindSnippetDataById(ctx context.Context, id int64) (FindSnippe
 }
 
 const findSnippetsByLikeTags = `-- name: FindSnippetsByLikeTags :many
-SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at, s.language
 FROM snippets s
 JOIN snippets_tags st on s.id = st.snippet_id
 JOIN tags t on st.tag_id = t.id
@@ -134,6 +136,7 @@ func (q *Queries) FindSnippetsByLikeTags(ctx context.Context, tag string) ([]Sni
 			&i.Url,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Language,
 		); err != nil {
 			return nil, err
 		}
@@ -149,7 +152,7 @@ func (q *Queries) FindSnippetsByLikeTags(ctx context.Context, tag string) ([]Sni
 }
 
 const findSnippetsByTags = `-- name: FindSnippetsByTags :many
-SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at, s.language
 FROM snippets s
 JOIN snippets_tags st on s.id = st.snippet_id
 JOIN tags t on st.tag_id = t.id
@@ -183,6 +186,7 @@ func (q *Queries) FindSnippetsByTags(ctx context.Context, tags []string) ([]Snip
 			&i.Url,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Language,
 		); err != nil {
 			return nil, err
 		}
@@ -198,7 +202,7 @@ func (q *Queries) FindSnippetsByTags(ctx context.Context, tags []string) ([]Snip
 }
 
 const findSnippetsPaginated = `-- name: FindSnippetsPaginated :many
-SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at
+SELECT s.id, s.title, s.body, s.description, s.url, s.created_at, s.updated_at, s.language
 FROM snippets s
 ORDER BY s.created_at DESC
 LIMIT ?
@@ -227,6 +231,7 @@ func (q *Queries) FindSnippetsPaginated(ctx context.Context, arg FindSnippetsPag
 			&i.Url,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Language,
 		); err != nil {
 			return nil, err
 		}
@@ -349,7 +354,7 @@ func (q *Queries) GetSnippetCount(ctx context.Context) (int64, error) {
 }
 
 const insertSnippet = `-- name: InsertSnippet :one
-INSERT INTO snippets (title, body, description, url) VALUES (?, ?, ?, ?) RETURNING id
+INSERT INTO snippets (title, body, description, url, language) VALUES (?, ?, ?, ?, ?) RETURNING id
 `
 
 type InsertSnippetParams struct {
@@ -357,6 +362,7 @@ type InsertSnippetParams struct {
 	Body        string
 	Description string
 	Url         string
+	Language    sql.NullString
 }
 
 func (q *Queries) InsertSnippet(ctx context.Context, arg InsertSnippetParams) (int64, error) {
@@ -365,6 +371,7 @@ func (q *Queries) InsertSnippet(ctx context.Context, arg InsertSnippetParams) (i
 		arg.Body,
 		arg.Description,
 		arg.Url,
+		arg.Language,
 	)
 	var id int64
 	err := row.Scan(&id)
@@ -424,7 +431,7 @@ func (q *Queries) SnippetTagExists(ctx context.Context, tag string) (int64, erro
 }
 
 const updateSnippet = `-- name: UpdateSnippet :exec
-UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, updated_at = current_timestamp WHERE id = ?
+UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, language = ?, updated_at = current_timestamp WHERE id = ?
 `
 
 type UpdateSnippetParams struct {
@@ -432,6 +439,7 @@ type UpdateSnippetParams struct {
 	Body        string
 	Description string
 	Url         string
+	Language    sql.NullString
 	ID          int64
 }
 
@@ -441,6 +449,7 @@ func (q *Queries) UpdateSnippet(ctx context.Context, arg UpdateSnippetParams) er
 		arg.Body,
 		arg.Description,
 		arg.Url,
+		arg.Language,
 		arg.ID,
 	)
 	return err
