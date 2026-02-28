@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -16,6 +17,8 @@ import (
 	"github.com/rivo/tview"
 	"golang.design/x/clipboard"
 )
+
+var once sync.Once
 
 var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+B", "Focus code field"},
@@ -142,35 +145,37 @@ func (ep *EditPage) initInputCapture() {
 }
 
 func (ep *EditPage) initLangDetector() {
-	ticker := time.NewTicker(time.Second)
-	go func() {
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				var shouldDetect bool
-				var bodyText string
+	once.Do(func() {
+		ticker := time.NewTicker(time.Second)
+		go func() {
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					var shouldDetect bool
+					var bodyText string
 
-				ep.tools.QueueUpdateDraw(func() {
-					frontPage, _ := ep.tools.GetFrontPage()
-					shouldDetect = frontPage == configuration.EditPage.String() &&
-						!ep.isLangManuallySelected.Load() &&
-						!ep.language.HasFocus()
-					if shouldDetect {
-						bodyText = ep.body.GetText()
-					}
-				})
-
-				if shouldDetect {
-					detectedLang := langdetector.Detect(bodyText)
-					langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
 					ep.tools.QueueUpdateDraw(func() {
-						ep.setLanguageOptionProgrammatically(langIndex + 1)
+						frontPage, _ := ep.tools.GetFrontPage()
+						shouldDetect = frontPage == configuration.EditPage.String() &&
+							!ep.isLangManuallySelected.Load() &&
+							!ep.language.HasFocus()
+						if shouldDetect {
+							bodyText = ep.body.GetText()
+						}
 					})
+
+					if shouldDetect {
+						detectedLang := langdetector.Detect(bodyText)
+						langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
+						ep.tools.QueueUpdateDraw(func() {
+							ep.setLanguageOptionProgrammatically(langIndex + 1)
+						})
+					}
+				case <-ep.tools.Ctx.Done():
+					return
 				}
-			case <-ep.tools.Ctx.Done():
-				return
 			}
-		}
-	}()
+		}()
+	})
 }
