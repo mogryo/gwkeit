@@ -153,7 +153,7 @@ func (ep *EditPage) initLangDetector() {
 
 				ep.tools.QueueUpdateDraw(func() {
 					frontPage, _ := ep.tools.GetFrontPage()
-					shouldDetect = frontPage == configuration.AdditionPage.String() &&
+					shouldDetect = frontPage == configuration.EditPage.String() &&
 						!ep.isLangManuallySelected.Load() &&
 						!ep.language.HasFocus()
 					if shouldDetect {

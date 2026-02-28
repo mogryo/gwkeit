@@ -83,7 +83,12 @@ func IsKotlin(src string) bool {
 		trim := strings.TrimSpace(line)
 
 		// Quick reject patterns from other languages
-		if reRejectJS.MatchString(trim) || reRejectGo.MatchString(trim) || reRejectPython.MatchString(trim) || reRejectRuby.MatchString(trim) {
+		rejectLine := reSingleQuoted.ReplaceAllString(trim, `''`)
+		rejectLine = reDoubleQuoted.ReplaceAllString(rejectLine, `""`)
+		if idx := strings.Index(rejectLine, "//"); idx >= 0 {
+			rejectLine = rejectLine[:idx]
+		}
+		if reRejectJS.MatchString(rejectLine) || reRejectGo.MatchString(rejectLine) || reRejectPython.MatchString(rejectLine) || reRejectRuby.MatchString(rejectLine) {
 			return false
 		}
 
