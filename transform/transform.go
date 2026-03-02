@@ -89,9 +89,6 @@ func AlignTextLeft(text string) (string, bool) {
 	}
 
 	trimmedLines := slicelib.Map(lines, func(line string) string {
-		//if trimmerString := strings.TrimSpace(line); utf8.RuneCountInString(trimmerString) == 0 {
-		//	return line
-		//}
 		return strings.TrimPrefix(line, strings.Repeat(string(spacingChar), smallestWhitespaceCount))
 	})
 	return strings.Join(trimmedLines, "\n"), true
