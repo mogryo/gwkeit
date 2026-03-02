@@ -62,10 +62,10 @@ func Test_AlignTextLeft(t *testing.T) {
 		assert.Equal(t, "test", val)
 		assert.False(t, isParsed)
 	})
-	t.Run("should remove spaces in multiline with only whitespaces", func(t *testing.T) {
+	t.Run("should not remove spaces in multiline with only whitespaces", func(t *testing.T) {
 		val, isParsed := AlignTextLeft("  \n  ")
-		assert.Equal(t, "\n", val)
-		assert.True(t, isParsed)
+		assert.Equal(t, "  \n  ", val)
+		assert.False(t, isParsed)
 	})
 	t.Run("should align single line text to left", func(t *testing.T) {
 		val, isParsed := AlignTextLeft("  test  ")
