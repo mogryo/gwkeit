@@ -61,10 +61,12 @@ func AlignTextLeft(text string) (string, bool) {
 
 	lines := strings.Split(text, "\n")
 	smallestWhitespaceCount := slices.Max(slicelib.Map(lines, func(line string) int { return utf8.RuneCountInString(line) }))
+	hasContent := false
 	for _, line := range lines {
 		if trimmerString := strings.TrimSpace(line); utf8.RuneCountInString(trimmerString) == 0 {
 			continue
 		}
+		hasContent = true
 
 		whitespaceCount := 0
 		for _, char := range line {
@@ -84,7 +86,7 @@ func AlignTextLeft(text string) (string, bool) {
 		}
 	}
 
-	if smallestWhitespaceCount == 0 {
+	if !hasContent || smallestWhitespaceCount == 0 {
 		return text, false
 	}
 
