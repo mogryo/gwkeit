@@ -103,9 +103,11 @@ func (ap *AdditionPage) initInputCapture() {
 			if isParsed {
 				ap.body.SetText(alignedBodyText, true)
 			}
+			resultEvent = nil
 		case tcell.KeyCtrlO:
 			ap.body.SetText("", true)
 			ap.tools.Focus(ap.body)
+			resultEvent = nil
 		case tcell.KeyCtrlS:
 			_, selectedLanguage := ap.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(

@@ -105,9 +105,11 @@ func (ep *EditPage) initInputCapture() {
 			if isParsed {
 				ep.body.SetText(alignedBodyText, true)
 			}
+			resultEvent = nil
 		case tcell.KeyCtrlO:
 			ep.body.SetText("", true)
 			ep.tools.Focus(ep.body)
+			resultEvent = nil
 		case tcell.KeyCtrlS:
 			_, selectedLanguage := ep.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(
@@ -150,6 +152,7 @@ func (ep *EditPage) initInputCapture() {
 				ep.logs.AddSuccessLogs([]string{"Body copied to clipboard."})
 				clipboard.Write(clipboard.FmtText, []byte(ep.body.GetText()))
 			}
+			resultEvent = nil
 		}
 
 		return resultEvent
