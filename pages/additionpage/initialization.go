@@ -11,6 +11,7 @@ import (
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/dto"
 	"github.com/gwkeit/langdetector"
+	"github.com/gwkeit/transform"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
@@ -20,12 +21,14 @@ var once sync.Once
 
 var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+B", "Focus code field"},
+	{"ctrl+O", "Focus and delete everything in code field"},
 	{"ctrl+T", "Focus title field"},
 	{"ctrl+D", "Focus description field"},
 	{"ctrl+U", "Focus urls field"},
 	{"ctrl+L", "Focus language field"},
 	{"ctrl+S", "Save snippet"},
-	{"ctrl+N", "Clear fields"},
+	{"ctrl+N", "Clear all fields"},
+	{"ctrl+F", "Format the code"},
 }
 
 func (ap *AdditionPage) initFrame() {
@@ -94,6 +97,17 @@ func (ap *AdditionPage) initInputCapture() {
 		case tcell.KeyCtrlL:
 			ap.tools.Focus(ap.language)
 			resultEvent = nil
+		case tcell.KeyCtrlF:
+			bodyText := ap.body.GetText()
+			alignedBodyText, isParsed := transform.AlignTextLeft(bodyText)
+			if isParsed {
+				ap.body.SetText(alignedBodyText, true)
+			}
+			resultEvent = nil
+		case tcell.KeyCtrlO:
+			ap.body.SetText("", true)
+			ap.tools.Focus(ap.body)
+			resultEvent = nil
 		case tcell.KeyCtrlS:
 			_, selectedLanguage := ap.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(
@@ -124,9 +138,11 @@ func (ap *AdditionPage) initInputCapture() {
 			ap.title.SetText("", true)
 			ap.description.SetText("", true)
 			ap.urls.SetText("", true)
-			ap.isLangManuallySelected.Store(false)
 			ap.setLanguageOptionProgrammatically(0)
-			ap.logs.AddInfoLogs([]string{"Language detect is enabled"})
+			if ap.isLangManuallySelected.Load() {
+				ap.isLangManuallySelected.Store(false)
+				ap.logs.AddInfoLogs([]string{"Language detect is enabled"})
+			}
 			resultEvent = nil
 		}
 
