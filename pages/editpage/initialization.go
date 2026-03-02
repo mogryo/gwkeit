@@ -12,6 +12,7 @@ import (
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/dto"
 	"github.com/gwkeit/langdetector"
+	"github.com/gwkeit/transform"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/validator"
 	"github.com/rivo/tview"
@@ -22,6 +23,7 @@ var once sync.Once
 
 var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+B", "Focus code field"},
+	{"ctrl+O", "Focus and delete everything in code field"},
 	{"ctrl+T", "Focus title field"},
 	{"ctrl+D", "Focus description field"},
 	{"ctrl+U", "Focus urls field"},
@@ -29,6 +31,7 @@ var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+S", "Save snippet"},
 	{"ctrl+N", "Discard unsaved changes"},
 	{"ctrl+C", "Copy snippet body"},
+	{"ctrl+F", "Format the code"},
 }
 
 func (ep *EditPage) initMetadataFields() {
@@ -96,6 +99,15 @@ func (ep *EditPage) initInputCapture() {
 		case tcell.KeyCtrlL:
 			ep.tools.Focus(ep.language)
 			resultEvent = nil
+		case tcell.KeyCtrlF:
+			bodyText := ep.body.GetText()
+			alignedBodyText, isParsed := transform.AlignTextLeft(bodyText)
+			if isParsed {
+				ep.body.SetText(alignedBodyText, true)
+			}
+		case tcell.KeyCtrlO:
+			ep.body.SetText("", true)
+			ep.tools.Focus(ep.body)
 		case tcell.KeyCtrlS:
 			_, selectedLanguage := ep.language.GetCurrentOption()
 			snippetDto := dto.NewSnippetFromFields(
