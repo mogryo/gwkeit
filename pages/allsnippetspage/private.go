@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/gdamore/tcell/v2"
+	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/utils"
-	"github.com/rivo/tview"
 )
 
 func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
@@ -22,27 +21,24 @@ func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 	asp.table.SetCell(
 		0,
 		0,
-		tview.NewTableCell("Title").SetAlign(tview.AlignLeft).SetBackgroundColor(tcell.ColorDefault).SetAttributes(tcell.AttrBold),
+		uibuilder.NewTableCell(asp.themeName, "Title"),
 	)
 	asp.table.SetCell(
 		0,
 		1,
-		tview.NewTableCell("Created At").SetAlign(tview.AlignLeft).SetBackgroundColor(tcell.ColorDefault).SetAttributes(tcell.AttrBold),
+		uibuilder.NewTableCell(asp.themeName, "Created At"),
 	)
 	asp.table.SetCell(
 		0,
 		2,
-		tview.NewTableCell("Updated At").SetAlign(tview.AlignLeft).SetBackgroundColor(tcell.ColorDefault).SetAttributes(tcell.AttrBold),
+		uibuilder.NewTableCell(asp.themeName, "Updated At"),
 	)
 	for index, snippet := range snippets {
 		rowIndex := index + 1
 		asp.table.SetCell(
 			rowIndex,
 			0,
-			tview.NewTableCell(snippet.Title).
-				SetAlign(tview.AlignLeft).
-				SetBackgroundColor(tcell.ColorDefault).
-				SetExpansion(1),
+			uibuilder.NewTableCell(asp.themeName, snippet.Title).SetExpansion(1),
 		)
 
 		createdTimestamp := utils.IfElse(
@@ -53,7 +49,7 @@ func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 		asp.table.SetCell(
 			rowIndex,
 			1,
-			tview.NewTableCell(createdTimestamp).SetAlign(tview.AlignLeft).SetBackgroundColor(tcell.ColorDefault),
+			uibuilder.NewTableCell(asp.themeName, createdTimestamp),
 		)
 
 		updatedTimestamp := utils.IfElse(
@@ -64,7 +60,7 @@ func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 		asp.table.SetCell(
 			rowIndex,
 			2,
-			tview.NewTableCell(updatedTimestamp).SetAlign(tview.AlignLeft).SetBackgroundColor(tcell.ColorDefault),
+			uibuilder.NewTableCell(asp.themeName, updatedTimestamp),
 		)
 	}
 

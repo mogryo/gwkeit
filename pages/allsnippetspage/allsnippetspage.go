@@ -28,6 +28,7 @@ type AllSnippetsPage struct {
 	snippets               []gwkeitdb.Snippet
 	selectedSnippetId      int64
 	pageConf               configuration.IAllSnippetsConf
+	themeName              uibuilder.ThemeName
 }
 
 const (
@@ -38,18 +39,20 @@ func NewPage(
 	tools *apptools.Tools,
 	logs *widgets.LogsWidget,
 	pageConf configuration.IAllSnippetsConf,
+	themeName uibuilder.ThemeName,
 ) *AllSnippetsPage {
 	asp := &AllSnippetsPage{
 		tools:                  tools,
-		title:                  uibuilder.NewTextArea("", ""),
-		description:            uibuilder.NewTextArea("", ""),
-		urls:                   uibuilder.NewTextArea("", ""),
-		totalSnippetAmountView: uibuilder.NewTextView("Total items: 0"),
-		totalPagesView:         uibuilder.NewTextView("Total pages: 0"),
+		title:                  uibuilder.NewTextArea(themeName, "", ""),
+		description:            uibuilder.NewTextArea(themeName, "", ""),
+		urls:                   uibuilder.NewTextArea(themeName, "", ""),
+		totalSnippetAmountView: uibuilder.NewTextView(themeName, "Total items: 0"),
+		totalPagesView:         uibuilder.NewTextView(themeName, "Total pages: 0"),
 		logs:                   logs,
 		pageConf:               pageConf,
 		pageSize:               pageConf.GetPageSize(),
 		selectedSnippetId:      -1,
+		themeName:              themeName,
 	}
 
 	snippetDataFlex := asp.initSnippetDataFlex()

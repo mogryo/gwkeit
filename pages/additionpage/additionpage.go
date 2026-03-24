@@ -4,6 +4,7 @@ import (
 	"sync/atomic"
 
 	"github.com/gwkeit/apptools"
+	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
 )
@@ -20,14 +21,16 @@ type AdditionPage struct {
 	logs                       *widgets.LogsWidget
 	isLangManuallySelected     atomic.Bool
 	isLangSelectFuncSuppressed atomic.Bool
+	themeName                  uibuilder.ThemeName
 }
 
-func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget) *AdditionPage {
+func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget, themeName uibuilder.ThemeName) *AdditionPage {
 	additionPage := &AdditionPage{
 		tools:                      tools,
 		logs:                       logs,
 		isLangManuallySelected:     atomic.Bool{},
 		isLangSelectFuncSuppressed: atomic.Bool{},
+		themeName:                  themeName,
 	}
 
 	additionPage.isLangManuallySelected.Store(false)

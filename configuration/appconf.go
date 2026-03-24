@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path"
+
+	"github.com/gwkeit/uibuilder"
 )
 
 type SearchPageConf struct {
@@ -27,8 +29,9 @@ type IAllSnippetsConf interface {
 }
 
 type AppConfiguration struct {
-	SearchPage  SearchPageConf  `json:"searchPage"`
-	AllSnippets AllSnippetsConf `json:"allSnippets"`
+	SearchPage  SearchPageConf      `json:"searchPage"`
+	AllSnippets AllSnippetsConf     `json:"allSnippets"`
+	ThemeName   uibuilder.ThemeName `json:"themeName"`
 }
 
 var DefaultAppConf = &AppConfiguration{
@@ -38,6 +41,7 @@ var DefaultAppConf = &AppConfiguration{
 	AllSnippets: AllSnippetsConf{
 		PageSize: 10,
 	},
+	ThemeName: "default",
 }
 
 func ReadConfiguration() *AppConfiguration {
@@ -125,4 +129,12 @@ func (as *AllSnippetsConf) SetPageSize(pageSize int64) {
 
 func (as *AllSnippetsConf) GetPageSize() int64 {
 	return as.PageSize
+}
+
+func SetAppTheme(name uibuilder.ThemeName) {
+	updateAppConfigurationFile(
+		func(state *AppConfiguration) {
+			state.ThemeName = name
+		},
+	)
 }

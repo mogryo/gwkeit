@@ -4,6 +4,7 @@ import (
 	"sync/atomic"
 
 	"github.com/gwkeit/apptools"
+	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
 )
@@ -21,12 +22,14 @@ type EditPage struct {
 	logs                       *widgets.LogsWidget
 	isLangManuallySelected     atomic.Bool
 	isLangSelectFuncSuppressed atomic.Bool
+	themeName                  uibuilder.ThemeName
 }
 
-func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget) *EditPage {
+func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget, themeName uibuilder.ThemeName) *EditPage {
 	ep := &EditPage{
-		tools: tools,
-		logs:  logs,
+		tools:     tools,
+		logs:      logs,
+		themeName: themeName,
 	}
 
 	ep.initMetadataFields()

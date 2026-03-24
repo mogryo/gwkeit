@@ -6,6 +6,7 @@ import (
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/gwkeitdb"
+	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
 	"github.com/rivo/tview"
 )
@@ -30,18 +31,21 @@ type SearchPage struct {
 	tools             *apptools.Tools
 	logs              *widgets.LogsWidget
 	pageConf          configuration.ISearchPageConf
+	themeName         uibuilder.ThemeName
 }
 
 func NewPage(
 	tools *apptools.Tools,
 	pageState configuration.ISearchPageConf,
 	logs *widgets.LogsWidget,
+	themeName uibuilder.ThemeName,
 ) *SearchPage {
 	searchPage := &SearchPage{
 		selectedSnippetId: -1,
 		tools:             tools,
 		logs:              logs,
 		pageConf:          pageState,
+		themeName:         themeName,
 	}
 
 	searchPage.initMetadataFields()
