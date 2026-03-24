@@ -25,8 +25,8 @@ type AppThemeConfig struct {
 	TimestampMessage string      `json:"timestampMessage"`
 }
 
-var appThemes = map[string]AppThemeConfig{
-	DefaultTheme.String(): {
+var appThemes = map[ThemeName]AppThemeConfig{
+	DefaultTheme: {
 		MainColor:        tcell.ColorDefault,
 		SelectedColor:    tcell.ColorGreen,
 		SecondaryColor:   tcell.ColorDefault,
@@ -37,7 +37,7 @@ var appThemes = map[string]AppThemeConfig{
 		ErrorMessage:     "#ff4689",
 		TimestampMessage: "grey",
 	},
-	LightTheme.String(): {
+	LightTheme: {
 		MainColor:        tcell.ColorBlack,
 		SecondaryColor:   tcell.ColorDarkSlateGrey,
 		SelectedColor:    tcell.ColorGreen,
@@ -48,7 +48,7 @@ var appThemes = map[string]AppThemeConfig{
 		ErrorMessage:     "#cc2f5a",
 		TimestampMessage: "grey",
 	},
-	DarkTheme.String(): {
+	DarkTheme: {
 		MainColor:        tcell.ColorWhite,
 		SecondaryColor:   tcell.ColorSilver,
 		SelectedColor:    tcell.ColorGreen,
@@ -59,7 +59,7 @@ var appThemes = map[string]AppThemeConfig{
 		ErrorMessage:     "#ff6b8b",
 		TimestampMessage: "#a0a0a0",
 	},
-	GreyTheme.String(): {
+	GreyTheme: {
 		MainColor:        tcell.ColorWhiteSmoke,
 		SelectedColor:    tcell.ColorGreen,
 		SecondaryColor:   tcell.ColorGainsboro,
@@ -73,7 +73,7 @@ var appThemes = map[string]AppThemeConfig{
 }
 
 func GetTheme(themeName ThemeName) *AppThemeConfig {
-	theme, ok := appThemes[themeName.String()]
+	theme, ok := appThemes[themeName]
 	if !ok {
 		panic("Theme not found")
 	}

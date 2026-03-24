@@ -83,11 +83,6 @@ func updateAppConfigurationFile(updateFunc func(state *AppConfiguration)) *AppCo
 
 	var appState AppConfiguration
 	jsonParser := json.NewDecoder(configFile)
-	truncateErr := configFile.Truncate(0)
-	_, seekErr := configFile.Seek(0, 0)
-	if cmp.Or(truncateErr, seekErr) != nil {
-		panic(truncateErr)
-	}
 
 	if err = jsonParser.Decode(&appState); err == io.EOF {
 		appState = *DefaultAppConf
@@ -96,6 +91,12 @@ func updateAppConfigurationFile(updateFunc func(state *AppConfiguration)) *AppCo
 	}
 
 	updateFunc(&appState)
+
+	truncateErr := configFile.Truncate(0)
+	_, seekErr := configFile.Seek(0, 0)
+	if cmp.Or(truncateErr, seekErr) != nil {
+		panic(truncateErr)
+	}
 
 	jsonEncoder := json.NewEncoder(configFile)
 	if err = jsonEncoder.Encode(&appState); err != nil {
