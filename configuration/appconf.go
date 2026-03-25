@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path"
+
+	"github.com/gwkeit/uibuilder"
 )
 
 type SearchPageConf struct {
@@ -27,8 +29,9 @@ type IAllSnippetsConf interface {
 }
 
 type AppConfiguration struct {
-	SearchPage  SearchPageConf  `json:"searchPage"`
-	AllSnippets AllSnippetsConf `json:"allSnippets"`
+	SearchPage  SearchPageConf      `json:"searchPage"`
+	AllSnippets AllSnippetsConf     `json:"allSnippets"`
+	ThemeName   uibuilder.ThemeName `json:"themeName"`
 }
 
 var DefaultAppConf = &AppConfiguration{
@@ -38,6 +41,7 @@ var DefaultAppConf = &AppConfiguration{
 	AllSnippets: AllSnippetsConf{
 		PageSize: 10,
 	},
+	ThemeName: uibuilder.DefaultTheme,
 }
 
 func ReadConfiguration() *AppConfiguration {
@@ -79,11 +83,6 @@ func updateAppConfigurationFile(updateFunc func(state *AppConfiguration)) *AppCo
 
 	var appState AppConfiguration
 	jsonParser := json.NewDecoder(configFile)
-	truncateErr := configFile.Truncate(0)
-	_, seekErr := configFile.Seek(0, 0)
-	if cmp.Or(truncateErr, seekErr) != nil {
-		panic(truncateErr)
-	}
 
 	if err = jsonParser.Decode(&appState); err == io.EOF {
 		appState = *DefaultAppConf
@@ -92,6 +91,12 @@ func updateAppConfigurationFile(updateFunc func(state *AppConfiguration)) *AppCo
 	}
 
 	updateFunc(&appState)
+
+	truncateErr := configFile.Truncate(0)
+	_, seekErr := configFile.Seek(0, 0)
+	if cmp.Or(truncateErr, seekErr) != nil {
+		panic(truncateErr)
+	}
 
 	jsonEncoder := json.NewEncoder(configFile)
 	if err = jsonEncoder.Encode(&appState); err != nil {
@@ -125,4 +130,12 @@ func (as *AllSnippetsConf) SetPageSize(pageSize int64) {
 
 func (as *AllSnippetsConf) GetPageSize() int64 {
 	return as.PageSize
+}
+
+func SetAppTheme(name uibuilder.ThemeName) {
+	updateAppConfigurationFile(
+		func(state *AppConfiguration) {
+			state.ThemeName = name
+		},
+	)
 }

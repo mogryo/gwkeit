@@ -18,7 +18,7 @@ var shortcutDescription = []apptools.ShortcutDescription{
 }
 
 func (asp *AllSnippetsPage) initCurrentPageInput() {
-	asp.currentPageInput = uibuilder.NewInputField("", "").SetAcceptanceFunc(func(textToCheck string, lastChar rune) bool {
+	asp.currentPageInput = uibuilder.NewInputField(asp.themeName, "", "").SetAcceptanceFunc(func(textToCheck string, lastChar rune) bool {
 		isInteger := tview.InputFieldInteger(textToCheck, lastChar)
 
 		if !isInteger {
@@ -42,7 +42,7 @@ func (asp *AllSnippetsPage) initCurrentPageInput() {
 }
 
 func (asp *AllSnippetsPage) initPageSizeInput() {
-	asp.pageSizeInput = uibuilder.NewInputField("", "").SetAcceptanceFunc(func(textToCheck string, lastChar rune) bool {
+	asp.pageSizeInput = uibuilder.NewInputField(asp.themeName, "", "").SetAcceptanceFunc(func(textToCheck string, lastChar rune) bool {
 		isInteger := tview.InputFieldInteger(textToCheck, lastChar)
 
 		if !isInteger {
@@ -68,10 +68,10 @@ func (asp *AllSnippetsPage) initPageSizeInput() {
 
 func (asp *AllSnippetsPage) initTablePagination() *tview.Flex {
 	tablePaginationFlex := tview.NewFlex().SetDirection(tview.FlexColumn).
-		AddItem(uibuilder.NewWidget("Total items", asp.totalSnippetAmountView), 0, 1, false).
-		AddItem(uibuilder.NewWidget("Total pages", asp.totalPagesView), 0, 1, false).
-		AddItem(uibuilder.NewWidget("Items per page: ", asp.pageSizeInput), 0, 2, false).
-		AddItem(uibuilder.NewWidget("Page: ", asp.currentPageInput), 0, 2, false)
+		AddItem(uibuilder.NewWidget(asp.themeName, "Total items", asp.totalSnippetAmountView), 0, 1, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "Total pages", asp.totalPagesView), 0, 1, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "Items per page: ", asp.pageSizeInput), 0, 2, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "Page: ", asp.currentPageInput), 0, 2, false)
 	tablePaginationFlex.SetBorderPadding(0, 0, 0, 0).SetBackgroundColor(tcell.ColorDefault)
 
 	return tablePaginationFlex
@@ -82,35 +82,29 @@ func (asp *AllSnippetsPage) initGridLayout(snippetDataFlex *tview.Flex, tablePag
 		SetRows(14, 0, 3).
 		SetColumns(0, 50).
 		SetBorders(false).
-		AddItem(uibuilder.NewWidget("Snippets:", asp.table), 0, 0, 2, 1, 0, 100, false).
-		AddItem(uibuilder.NewWidget("Logs:", asp.logs.View), 0, 1, 1, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "Snippets:", asp.table), 0, 0, 2, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "Logs:", asp.logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(snippetDataFlex, 1, 1, 2, 1, 0, 100, false).
 		AddItem(tablePaginationFlex, 2, 0, 1, 1, 0, 100, false)
 	asp.grid.SetBackgroundColor(tcell.ColorDefault)
 }
 
 func (asp *AllSnippetsPage) initFrame() {
-	asp.Frame = tview.NewFrame(asp.grid).
-		SetBorders(0, 0, 0, 0, 0, 0).
-		AddText("[::b]All snippets[::-]", true, tview.AlignCenter, tcell.ColorDefault)
-	asp.Frame.SetBackgroundColor(tcell.ColorDefault)
+	asp.Frame = uibuilder.NewPageFrame(asp.themeName, asp.grid, "All snippets")
 }
 
 func (asp *AllSnippetsPage) initTable() {
-	asp.table = tview.NewTable().
-		SetBorders(true)
-	asp.table.SetBackgroundColor(tcell.ColorDefault)
-	asp.table.SetFixed(1, 1).
-		SetSelectedFunc(func(row int, column int) {
-			if row == 0 {
-				return
-			}
-			snippet := asp.tools.Repo.FindSnippet(asp.tools.Ctx, asp.snippets[row-1].ID)
-			asp.selectedSnippetId = snippet.ID
-			asp.title.SetText(snippet.Title, false)
-			asp.description.SetText(snippet.Description, false)
-			asp.urls.SetText(snippet.Url, false)
-		}).
+	asp.table = uibuilder.NewTable(asp.themeName, 1, 1)
+	asp.table.SetSelectedFunc(func(row int, column int) {
+		if row == 0 {
+			return
+		}
+		snippet := asp.tools.Repo.FindSnippet(asp.tools.Ctx, asp.snippets[row-1].ID)
+		asp.selectedSnippetId = snippet.ID
+		asp.title.SetText(snippet.Title, false)
+		asp.description.SetText(snippet.Description, false)
+		asp.urls.SetText(snippet.Url, false)
+	}).
 		SetBlurFunc(func() {
 			asp.table.SetSelectable(false, false)
 		})
@@ -118,9 +112,9 @@ func (asp *AllSnippetsPage) initTable() {
 
 func (asp *AllSnippetsPage) initSnippetDataFlex() *tview.Flex {
 	return tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget("Title:", asp.title), 0, 1, false).
-		AddItem(uibuilder.NewWidget("Description:", asp.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget("URLs:", asp.urls), 0, 3, false)
+		AddItem(uibuilder.NewWidget(asp.themeName, "Title:", asp.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "Description:", asp.description), 0, 3, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "URLs:", asp.urls), 0, 3, false)
 }
 
 func (asp *AllSnippetsPage) initInputCapture() {

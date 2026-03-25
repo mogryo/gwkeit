@@ -24,18 +24,18 @@ var shortcutDescription = []apptools.ShortcutDescription{
 }
 
 func (sp *SearchPage) initMetadataFields() {
-	sp.title = uibuilder.NewTextArea("", "")
+	sp.title = uibuilder.NewTextArea(sp.themeName, "", "")
 	sp.title.SetDisabled(true)
 
-	sp.description = uibuilder.NewTextArea("", "")
+	sp.description = uibuilder.NewTextArea(sp.themeName, "", "")
 	sp.description.SetDisabled(true)
 
-	sp.urls = uibuilder.NewTextArea("", "")
+	sp.urls = uibuilder.NewTextArea(sp.themeName, "", "")
 	sp.urls.SetDisabled(true)
 }
 
 func (sp *SearchPage) initBody() {
-	sp.body = uibuilder.NewTextArea("", "")
+	sp.body = uibuilder.NewTextArea(sp.themeName, "", "")
 	sp.body.SetDisabled(true)
 }
 
@@ -58,8 +58,7 @@ func (sp *SearchPage) initSearchField() {
 		}
 	}
 
-	sp.searchField = tview.NewInputField().
-		SetLabel("").
+	sp.searchField = uibuilder.NewInputField(sp.themeName, "", "").
 		SetFieldWidth(0).
 		SetAcceptanceFunc(func(text string, keyCode rune) bool { return true }).
 		SetDoneFunc(func(key tcell.Key) {
@@ -74,12 +73,9 @@ func (sp *SearchPage) initSearchField() {
 			onSelect(index, mainText, secText, shortcutRunes[index])
 		}).
 		SetChangedFunc(executeSearch)
-	sp.searchField.SetFieldStyle(uibuilder.InputBackgroundStyle)
-	sp.searchField.SetBackgroundColor(tcell.ColorDefault)
 
 	typeIndex := slices.Index([]string{"Tags", "Like", "FTS"}, sp.pageConf.GetSearchType())
-	sp.searchType = tview.NewDropDown().
-		SetLabel("Type: ").
+	sp.searchType = uibuilder.NewDropDown(sp.themeName, "Type: ").
 		SetOptions([]string{"Tags", "Like", "FTS"}, func(text string, index int) {
 			switch text {
 			case "Tags":
@@ -92,14 +88,6 @@ func (sp *SearchPage) initSearchField() {
 			executeSearch(sp.searchField.GetText())
 		}).
 		SetCurrentOption(utils.IfElse(typeIndex > -1, typeIndex, 0))
-	sp.searchType.SetFieldStyle(uibuilder.InputBackgroundStyle).
-		SetLabelStyle(uibuilder.InputBackgroundStyle).
-		SetFieldBackgroundColor(tcell.ColorDefault).
-		SetListStyles(
-			tcell.StyleDefault.Background(tcell.ColorDefault),
-			tcell.StyleDefault.Background(tcell.ColorGreenYellow),
-		).
-		SetBackgroundColor(tcell.ColorDefault)
 
 	sp.searchBox = tview.NewFlex().SetDirection(tview.FlexColumn).
 		AddItem(sp.searchField, 0, 4, false).
@@ -109,7 +97,7 @@ func (sp *SearchPage) initSearchField() {
 }
 
 func (sp *SearchPage) initResultList() {
-	sp.resultList = tview.NewList().
+	sp.resultList = uibuilder.NewList(sp.themeName).
 		ShowSecondaryText(false).
 		SetSelectedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
 			id, err := strconv.ParseInt(secondaryText, 10, 64)
@@ -125,11 +113,7 @@ func (sp *SearchPage) initResultList() {
 			sp.body.SetText(snippet.Body, true)
 			sp.description.SetText(snippet.Description, true)
 			sp.urls.SetText(snippet.Url, true)
-		}).
-		SetSelectedFocusOnly(true)
-	sp.resultList.SetBackgroundColor(tcell.ColorDefault)
-	sp.resultList.SetMainTextStyle(uibuilder.InputBackgroundStyle)
-	sp.resultList.SetShortcutStyle(uibuilder.InputBackgroundStyle.Foreground(tcell.ColorGreen))
+		})
 }
 
 func (sp *SearchPage) initGridLayout() {
@@ -137,15 +121,15 @@ func (sp *SearchPage) initGridLayout() {
 		SetRows(3, 11).
 		SetColumns(0, 50).
 		SetBorders(false).
-		AddItem(uibuilder.NewWidget("Search:", sp.searchBox), 0, 0, 1, 1, 0, 0, false).
-		AddItem(uibuilder.NewWidget("Logs:", sp.logs.View), 0, 1, 2, 1, 0, 0, false).
-		AddItem(uibuilder.NewWidget("List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
+		AddItem(uibuilder.NewWidget(sp.themeName, "Search:", sp.searchBox), 0, 0, 1, 1, 0, 0, false).
+		AddItem(uibuilder.NewWidget(sp.themeName, "Logs:", sp.logs.View), 0, 1, 2, 1, 0, 0, false).
+		AddItem(uibuilder.NewWidget(sp.themeName, "List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
 	metadataFlex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget("Title:", sp.title), 0, 1, false).
-		AddItem(uibuilder.NewWidget("Description:", sp.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget("URLs:", sp.urls), 0, 3, false)
+		AddItem(uibuilder.NewWidget(sp.themeName, "Title:", sp.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget(sp.themeName, "Description:", sp.description), 0, 3, false).
+		AddItem(uibuilder.NewWidget(sp.themeName, "URLs:", sp.urls), 0, 3, false)
 
-	sp.grid.AddItem(uibuilder.NewWidget("Code:", sp.body), 2, 0, 1, 1, 0, 100, false).
+	sp.grid.AddItem(uibuilder.NewWidget(sp.themeName, "Code:", sp.body), 2, 0, 1, 1, 0, 100, false).
 		AddItem(metadataFlex, 2, 1, 1, 1, 0, 100, false)
 
 	sp.grid.SetBackgroundColor(tcell.ColorDefault)
@@ -193,8 +177,5 @@ func (sp *SearchPage) initInputCapture() {
 }
 
 func (sp *SearchPage) initFrame() {
-	sp.Frame = tview.NewFrame(sp.grid).
-		SetBorders(0, 0, 0, 0, 0, 0).
-		AddText("Search", true, tview.AlignCenter, tcell.ColorDefault)
-	sp.Frame.SetBackgroundColor(tcell.ColorDefault)
+	sp.Frame = uibuilder.NewPageFrame(sp.themeName, sp.grid, "Search")
 }

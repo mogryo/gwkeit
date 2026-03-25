@@ -35,11 +35,11 @@ var shortcutDescription = []apptools.ShortcutDescription{
 }
 
 func (ep *EditPage) initMetadataFields() {
-	ep.body = uibuilder.NewTextArea("", "")
-	ep.title = uibuilder.NewTextArea("", "")
-	ep.description = uibuilder.NewTextArea("", "")
-	ep.urls = uibuilder.NewTextArea("", "")
-	ep.language = uibuilder.NewDropDown("")
+	ep.body = uibuilder.NewTextArea(ep.themeName, "", "")
+	ep.title = uibuilder.NewTextArea(ep.themeName, "", "")
+	ep.description = uibuilder.NewTextArea(ep.themeName, "", "")
+	ep.urls = uibuilder.NewTextArea(ep.themeName, "", "")
+	ep.language = uibuilder.NewDropDown(ep.themeName, "")
 	ep.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
 	ep.language.SetSelectedFunc(func(_ string, _ int) {
 		if !ep.isLangSelectFuncSuppressed.Load() {
@@ -56,22 +56,19 @@ func (ep *EditPage) initLayoutGrid() {
 		SetColumns(0, 50).
 		SetBorders(false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget("Title:", ep.title), 0, 1, false).
-		AddItem(uibuilder.NewWidget("Description:", ep.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget("URLs:", ep.urls), 0, 2, false).
-		AddItem(uibuilder.NewWidget("Language:", ep.language), 3, 1, false)
+		AddItem(uibuilder.NewWidget(ep.themeName, "Title:", ep.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget(ep.themeName, "Description:", ep.description), 0, 3, false).
+		AddItem(uibuilder.NewWidget(ep.themeName, "URLs:", ep.urls), 0, 2, false).
+		AddItem(uibuilder.NewWidget(ep.themeName, "Language:", ep.language), 3, 1, false)
 
-	ep.grid.AddItem(uibuilder.NewWidget("Code:", ep.body), 0, 0, 2, 1, 0, 100, false).
-		AddItem(uibuilder.NewWidget("Logs:", ep.logs.View), 0, 1, 1, 1, 0, 100, false).
+	ep.grid.AddItem(uibuilder.NewWidget(ep.themeName, "Code:", ep.body), 0, 0, 2, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(ep.themeName, "Logs:", ep.logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(flex, 1, 1, 1, 1, 0, 100, false)
 	ep.grid.SetBackgroundColor(tcell.ColorDefault)
 }
 
 func (ep *EditPage) initFrame() {
-	ep.Frame = tview.NewFrame(ep.grid).
-		SetBorders(0, 0, 0, 0, 0, 0).
-		AddText("Edit snippet", true, tview.AlignCenter, tcell.ColorDefault)
-	ep.Frame.SetBackgroundColor(tcell.ColorDefault)
+	ep.Frame = uibuilder.NewPageFrame(ep.themeName, ep.grid, "Edit snippet")
 }
 
 func (ep *EditPage) initInputCapture() {

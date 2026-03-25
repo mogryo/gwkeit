@@ -32,10 +32,7 @@ var shortcutDescription = []apptools.ShortcutDescription{
 }
 
 func (ap *AdditionPage) initFrame() {
-	ap.Frame = tview.NewFrame(ap.grid).
-		SetBorders(0, 0, 0, 0, 0, 0).
-		AddText("Add snippet", true, tview.AlignCenter, tcell.ColorDefault)
-	ap.Frame.SetBackgroundColor(tcell.ColorDefault)
+	ap.Frame = uibuilder.NewPageFrame(ap.themeName, ap.grid, "Add snippet")
 }
 
 func (ap *AdditionPage) initGridLayout() {
@@ -44,24 +41,24 @@ func (ap *AdditionPage) initGridLayout() {
 		SetColumns(0, 50).
 		SetBorders(false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget("Title:", ap.title), 0, 1, false).
-		AddItem(uibuilder.NewWidget("Description:", ap.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget("URLs:", ap.urls), 0, 2, false).
-		AddItem(uibuilder.NewWidget("Language:", ap.language), 3, 1, false)
+		AddItem(uibuilder.NewWidget(ap.themeName, "Title:", ap.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "Description:", ap.description), 0, 3, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "URLs:", ap.urls), 0, 2, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "Language:", ap.language), 3, 1, false)
 
 	ap.grid.
-		AddItem(uibuilder.NewWidget("Code:", ap.body), 0, 0, 2, 1, 0, 100, false).
-		AddItem(uibuilder.NewWidget("Logs:", ap.logs.View), 0, 1, 1, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "Code:", ap.body), 0, 0, 2, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "Logs:", ap.logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(flex, 1, 1, 1, 1, 0, 100, false)
 	ap.grid.SetBackgroundColor(tcell.ColorDefault)
 }
 
 func (ap *AdditionPage) initMetadataFields() {
-	ap.body = uibuilder.NewTextArea("", "")
-	ap.title = uibuilder.NewTextArea("", "")
-	ap.description = uibuilder.NewTextArea("", "")
-	ap.urls = uibuilder.NewTextArea("", "")
-	ap.language = uibuilder.NewDropDown("")
+	ap.body = uibuilder.NewTextArea(ap.themeName, "", "")
+	ap.title = uibuilder.NewTextArea(ap.themeName, "", "")
+	ap.description = uibuilder.NewTextArea(ap.themeName, "", "")
+	ap.urls = uibuilder.NewTextArea(ap.themeName, "", "")
+	ap.language = uibuilder.NewDropDown(ap.themeName, "")
 	ap.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
 	ap.language.SetSelectedFunc(func(_ string, _ int) {
 		if !ap.isLangSelectFuncSuppressed.Load() {

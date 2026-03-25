@@ -7,6 +7,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/slicelib"
+	"github.com/gwkeit/uibuilder"
 	"github.com/rivo/tview"
 )
 
@@ -20,12 +21,15 @@ const (
 )
 
 type LogsWidget struct {
-	View *tview.TextView
-	list []string
+	View      *tview.TextView
+	list      []string
+	themeName uibuilder.ThemeName
 }
 
-func NewLogsWidget(tools *apptools.Tools) *LogsWidget {
-	lw := &LogsWidget{}
+func NewLogsWidget(tools *apptools.Tools, themeName uibuilder.ThemeName) *LogsWidget {
+	lw := &LogsWidget{
+		themeName: themeName,
+	}
 	lw.View = tview.NewTextView().
 		SetDynamicColors(true).
 		SetRegions(true).
@@ -40,7 +44,7 @@ func NewLogsWidget(tools *apptools.Tools) *LogsWidget {
 }
 
 func (lw *LogsWidget) addTimestampLog() {
-	timestamp := "[grey]" + time.Now().Format("2006-01-02 15:04:05") + "[-]"
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
 	lw.addLog(timestamp, TimestampMessage)
 }
 
@@ -80,16 +84,18 @@ func (lw *LogsWidget) AddInfoLogs(logs []string) {
 }
 
 func (lw *LogsWidget) addLog(message string, logType LogType) {
+	theme := uibuilder.GetTheme(lw.themeName)
+
 	messageWithType := message
 	switch logType {
 	case ErrorMessage:
-		messageWithType = "[#ff4689]  " + messageWithType + "[-]"
+		messageWithType = "[" + theme.ErrorMessage + "]  " + messageWithType + "[-]"
 	case SuccessMessage:
-		messageWithType = "[#a6e22e]  " + messageWithType + "[-]"
+		messageWithType = "[" + theme.SuccessMessage + "]  " + messageWithType + "[-]"
 	case InfoMessage:
-		messageWithType = "[#0087ff]  " + messageWithType + "[-]"
+		messageWithType = "[" + theme.InfoMessage + "]  " + messageWithType + "[-]"
 	case TimestampMessage:
-		messageWithType = "[grey]" + messageWithType + "[-]"
+		messageWithType = "[" + theme.TimestampMessage + "]" + messageWithType + "[-]"
 	}
 	lw.list = append(lw.list, messageWithType)
 }

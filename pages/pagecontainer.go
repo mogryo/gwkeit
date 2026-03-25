@@ -28,11 +28,11 @@ func NewPageContainer(
 	tools *apptools.Tools,
 	appState *configuration.AppConfiguration,
 ) *PageContainer {
-	logs := widgets.NewLogsWidget(tools)
-	additionPage := additionpage.NewPage(tools, logs)
-	searchPage := searchpage.NewPage(tools, &appState.SearchPage, logs)
-	editPage := editpage.NewPage(tools, logs)
-	allSnippetsPage := allsnippetspage.NewPage(tools, logs, &appState.AllSnippets)
+	logs := widgets.NewLogsWidget(tools, appState.ThemeName)
+	additionPage := additionpage.NewPage(tools, logs, appState.ThemeName)
+	searchPage := searchpage.NewPage(tools, &appState.SearchPage, logs, appState.ThemeName)
+	editPage := editpage.NewPage(tools, logs, appState.ThemeName)
+	allSnippetsPage := allsnippetspage.NewPage(tools, logs, &appState.AllSnippets, appState.ThemeName)
 	modalPage := shortcutmodal.NewModal(tools)
 
 	pc := &PageContainer{
