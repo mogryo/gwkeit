@@ -27,7 +27,6 @@ func NewInputField(themeName ThemeName, label string, placeholder string) *tview
 		SetPlaceholderStyle(InputBackgroundStyle).
 		SetFieldBackgroundColor(tcell.ColorDefault).
 		SetBackgroundColor(tcell.ColorDefault)
-	field.SetLabelStyle(tcell.StyleDefault.Background(tcell.ColorDefault))
 	field.SetLabelColor(theme.LabelColor)
 
 	return field

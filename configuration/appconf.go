@@ -41,7 +41,7 @@ var DefaultAppConf = &AppConfiguration{
 	AllSnippets: AllSnippetsConf{
 		PageSize: 10,
 	},
-	ThemeName: "default",
+	ThemeName: uibuilder.DefaultTheme,
 }
 
 func ReadConfiguration() *AppConfiguration {
