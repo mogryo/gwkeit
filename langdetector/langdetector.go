@@ -1,11 +1,17 @@
 package langdetector
 
 import (
+	"strings"
+
 	"github.com/gwkeit/configuration"
 )
 
 func Detect(text string) configuration.Language {
 	detectedLanguages := make([]configuration.Language, 0)
+	if strings.TrimSpace(text) == "" {
+		return configuration.Text
+	}
+
 	if IsKotlin(text) {
 		detectedLanguages = append(detectedLanguages, configuration.Kotlin)
 	}

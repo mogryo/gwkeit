@@ -58,7 +58,7 @@ var setCodeThemeCmd = &cobra.Command{
 		case uibuilder.DefaultCodeTheme, uibuilder.LightCodeTheme, uibuilder.DarkCodeTheme:
 			configuration.SetCodeTheme(themeName)
 		default:
-			cmd.Printf("Invalid code theme %q. Allowed: default, light, dark, ", args[0])
+			cmd.Printf("Invalid code theme %q. Allowed: default, light, dark", args[0])
 		}
 	},
 }

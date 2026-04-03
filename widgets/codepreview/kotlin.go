@@ -70,19 +70,28 @@ func addKotlinDynamicColors(codeTheme *uibuilder.CodeThemeConfig, text string) s
 			}
 		}
 
-		if r == '"' || r == '`' || r == '\'' {
+		if r == '"' && strings.HasPrefix(text[i:], `"""`) {
+			j := i + 3
+			for j+2 < len(text) && !(text[j] == '"' && text[j+1] == '"' && text[j+2] == '"') {
+				j++
+			}
+			if j+2 < len(text) {
+				j += 3
+			} else {
+				j = len(text)
+			}
+			b.WriteString(codeTheme.String)
+			b.WriteString(escape(text[i:j]))
+			b.WriteString(colorReset)
+			i = j
+			continue
+		}
+
+		if r == '"' || r == '\'' {
 			quote := r
 			j := i + size
 			for j < len(text) {
 				rr, ss := utf8.DecodeRuneInString(text[j:])
-				if quote == '`' {
-					if rr == '`' {
-						j += ss
-						break
-					}
-					j += ss
-					continue
-				}
 				if rr == '\\' && j+ss < len(text) {
 					j += ss
 					_, ss2 := utf8.DecodeRuneInString(text[j:])

@@ -184,7 +184,7 @@ func (ep *EditPage) initLangDetector() {
 						detectedLang := langdetector.Detect(bodyText)
 						langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
 						ep.tools.QueueUpdateDraw(func() {
-							ep.setLanguageOptionProgrammatically(langIndex + 1)
+							ep.setLanguageOptionProgrammatically(langIndex)
 						})
 					}
 				case <-ep.tools.Ctx.Done():

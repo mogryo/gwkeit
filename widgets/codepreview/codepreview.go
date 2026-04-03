@@ -1,6 +1,8 @@
 package codepreview
 
 import (
+	"strings"
+
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/uibuilder"
 	"github.com/rivo/tview"
@@ -48,6 +50,6 @@ func (widget *CodePreviewWidget) SetText(
 	case configuration.TypeScript:
 		widget.View.SetText(addTypeScriptDynamicColors(codeTheme, text))
 	default:
-		widget.View.SetText(text)
+		widget.View.SetText(strings.ReplaceAll(text, "[", "[["))
 	}
 }
