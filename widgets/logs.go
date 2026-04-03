@@ -23,10 +23,10 @@ const (
 type LogsWidget struct {
 	View      *tview.TextView
 	list      []string
-	themeName uibuilder.ThemeName
+	themeName uibuilder.AppThemeName
 }
 
-func NewLogsWidget(tools *apptools.Tools, themeName uibuilder.ThemeName) *LogsWidget {
+func NewLogsWidget(tools *apptools.Tools, themeName uibuilder.AppThemeName) *LogsWidget {
 	lw := &LogsWidget{
 		themeName: themeName,
 	}
@@ -84,7 +84,7 @@ func (lw *LogsWidget) AddInfoLogs(logs []string) {
 }
 
 func (lw *LogsWidget) addLog(message string, logType LogType) {
-	theme := uibuilder.GetTheme(lw.themeName)
+	theme := uibuilder.GetAppTheme(lw.themeName)
 
 	messageWithType := message
 	switch logType {

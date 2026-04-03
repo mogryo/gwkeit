@@ -15,8 +15,8 @@ func generateFieldStyle(appTheme *AppThemeConfig) tcell.Style {
 	return InputBackgroundStyle.Foreground(appTheme.MainColor)
 }
 
-func NewInputField(themeName ThemeName, label string, placeholder string) *tview.InputField {
-	theme := GetTheme(themeName)
+func NewInputField(themeName AppThemeName, label string, placeholder string) *tview.InputField {
+	theme := GetAppTheme(themeName)
 
 	field := tview.NewInputField().
 		SetLabel(label).
@@ -32,8 +32,8 @@ func NewInputField(themeName ThemeName, label string, placeholder string) *tview
 	return field
 }
 
-func NewTextView(themeName ThemeName, text string) *tview.TextView {
-	theme := GetTheme(themeName)
+func NewTextView(themeName AppThemeName, text string) *tview.TextView {
+	theme := GetAppTheme(themeName)
 
 	textView := tview.NewTextView().SetText(text)
 	textView.SetBackgroundColor(tcell.ColorDefault)
@@ -43,11 +43,11 @@ func NewTextView(themeName ThemeName, text string) *tview.TextView {
 }
 
 func NewTextArea(
-	themeName ThemeName,
+	themeName AppThemeName,
 	label string,
 	placeholder string,
 ) *tview.TextArea {
-	theme := GetTheme(themeName)
+	theme := GetAppTheme(themeName)
 
 	textArea := tview.NewTextArea().
 		SetPlaceholder(placeholder)
@@ -64,8 +64,8 @@ func NewTextArea(
 	return textArea
 }
 
-func NewWidget(themeName ThemeName, title string, content tview.Primitive) *tview.Flex {
-	theme := GetTheme(themeName)
+func NewWidget(themeName AppThemeName, title string, content tview.Primitive) *tview.Flex {
+	theme := GetAppTheme(themeName)
 
 	fieldFlex := tview.NewFlex()
 	fieldFlex.
@@ -81,8 +81,8 @@ func NewWidget(themeName ThemeName, title string, content tview.Primitive) *tvie
 	return fieldFlex
 }
 
-func NewDropDown(themeName ThemeName, title string) *tview.DropDown {
-	theme := GetTheme(themeName)
+func NewDropDown(themeName AppThemeName, title string) *tview.DropDown {
+	theme := GetAppTheme(themeName)
 
 	dropDown := tview.NewDropDown().
 		SetLabel(title).
@@ -100,8 +100,8 @@ func NewDropDown(themeName ThemeName, title string) *tview.DropDown {
 	return dropDown
 }
 
-func NewList(themeName ThemeName) *tview.List {
-	theme := GetTheme(themeName)
+func NewList(themeName AppThemeName) *tview.List {
+	theme := GetAppTheme(themeName)
 
 	list := tview.NewList()
 	list.SetBackgroundColor(tcell.ColorDefault)
@@ -112,20 +112,21 @@ func NewList(themeName ThemeName) *tview.List {
 	return list
 }
 
-func NewTable(themeName ThemeName, rows int, columns int) *tview.Table {
-	theme := GetTheme(themeName)
+func NewTable(themeName AppThemeName, rows int, columns int) *tview.Table {
+	theme := GetAppTheme(themeName)
 
 	table := tview.NewTable().
 		SetBorders(true)
 	table.SetBackgroundColor(tcell.ColorDefault)
 	table.SetBordersColor(theme.BorderColor)
 	table.SetFixed(rows, columns)
+	table.SetSelectedStyle(tcell.StyleDefault.Background(theme.SelectedColor).Foreground(theme.MainColor))
 
 	return table
 }
 
-func NewTableCell(themeName ThemeName, text string) *tview.TableCell {
-	theme := GetTheme(themeName)
+func NewTableCell(themeName AppThemeName, text string) *tview.TableCell {
+	theme := GetAppTheme(themeName)
 
 	return tview.NewTableCell(text).
 		SetAlign(tview.AlignLeft).
@@ -133,8 +134,8 @@ func NewTableCell(themeName ThemeName, text string) *tview.TableCell {
 		SetAttributes(tcell.AttrBold).SetTextColor(theme.MainColor)
 }
 
-func NewPageFrame(themeName ThemeName, primitive tview.Primitive, text string) *tview.Frame {
-	theme := GetTheme(themeName)
+func NewPageFrame(themeName AppThemeName, primitive tview.Primitive, text string) *tview.Frame {
+	theme := GetAppTheme(themeName)
 
 	frame := tview.NewFrame(primitive).
 		SetBorders(0, 0, 0, 0, 0, 0).

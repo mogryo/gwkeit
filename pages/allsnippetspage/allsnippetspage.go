@@ -28,7 +28,7 @@ type AllSnippetsPage struct {
 	snippets               []gwkeitdb.Snippet
 	selectedSnippetId      int64
 	pageConf               configuration.IAllSnippetsConf
-	themeName              uibuilder.ThemeName
+	themeName              uibuilder.AppThemeName
 }
 
 const (
@@ -39,7 +39,7 @@ func NewPage(
 	tools *apptools.Tools,
 	logs *widgets.LogsWidget,
 	pageConf configuration.IAllSnippetsConf,
-	themeName uibuilder.ThemeName,
+	themeName uibuilder.AppThemeName,
 ) *AllSnippetsPage {
 	asp := &AllSnippetsPage{
 		tools:                  tools,

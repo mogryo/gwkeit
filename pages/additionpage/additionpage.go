@@ -6,6 +6,7 @@ import (
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
+	"github.com/gwkeit/widgets/codepreview"
 	"github.com/rivo/tview"
 )
 
@@ -17,20 +18,27 @@ type AdditionPage struct {
 	urls                       *tview.TextArea
 	grid                       *tview.Grid
 	Frame                      *tview.Frame
+	codePreview                *codepreview.CodePreviewWidget
 	tools                      *apptools.Tools
 	logs                       *widgets.LogsWidget
 	isLangManuallySelected     atomic.Bool
 	isLangSelectFuncSuppressed atomic.Bool
-	themeName                  uibuilder.ThemeName
+	themeName                  uibuilder.AppThemeName
 }
 
-func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget, themeName uibuilder.ThemeName) *AdditionPage {
+func NewPage(
+	tools *apptools.Tools,
+	logs *widgets.LogsWidget,
+	appThemeName uibuilder.AppThemeName,
+	codeThemeName uibuilder.CodeThemeName,
+) *AdditionPage {
 	additionPage := &AdditionPage{
 		tools:                      tools,
 		logs:                       logs,
 		isLangManuallySelected:     atomic.Bool{},
 		isLangSelectFuncSuppressed: atomic.Bool{},
-		themeName:                  themeName,
+		themeName:                  appThemeName,
+		codePreview:                codepreview.NewCodePreviewWidget(appThemeName, codeThemeName),
 	}
 
 	additionPage.isLangManuallySelected.Store(false)
