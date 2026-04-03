@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/uibuilder"
 	"github.com/spf13/cobra"
@@ -21,14 +23,15 @@ var setThemeCmd = &cobra.Command{
 	Short:   "Set the theme for the application",
 	Long:    "Set the theme for the application",
 	Args:    cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		themeName := uibuilder.AppThemeName(args[0])
 
 		switch themeName {
 		case uibuilder.DefaultAppTheme, uibuilder.LightAppTheme, uibuilder.DarkAppTheme, uibuilder.GreyAppTheme:
 			configuration.SetAppTheme(themeName)
+			return nil
 		default:
-			cmd.Printf("Invalid application theme %q. Allowed: default, light, dark, grey\n", args[0])
+			return fmt.Errorf("Invalid application theme %q. Allowed: default, light, dark, grey\n", args[0])
 		}
 	},
 }
@@ -51,14 +54,15 @@ var setCodeThemeCmd = &cobra.Command{
 	Short:   "Set the code theme for the code preview",
 	Long:    "Set the code theme for the code preview",
 	Args:    cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		themeName := uibuilder.CodeThemeName(args[0])
 
 		switch themeName {
 		case uibuilder.DefaultCodeTheme, uibuilder.LightCodeTheme, uibuilder.DarkCodeTheme:
 			configuration.SetCodeTheme(themeName)
+			return nil
 		default:
-			cmd.Printf("Invalid code theme %q. Allowed: default, light, dark", args[0])
+			return fmt.Errorf("Invalid code theme %q. Allowed: default, light, dark", args[0])
 		}
 	},
 }
