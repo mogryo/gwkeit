@@ -29,9 +29,10 @@ type IAllSnippetsConf interface {
 }
 
 type AppConfiguration struct {
-	SearchPage  SearchPageConf      `json:"searchPage"`
-	AllSnippets AllSnippetsConf     `json:"allSnippets"`
-	ThemeName   uibuilder.ThemeName `json:"themeName"`
+	SearchPage    SearchPageConf          `json:"searchPage"`
+	AllSnippets   AllSnippetsConf         `json:"allSnippets"`
+	AppThemeName  uibuilder.AppThemeName  `json:"themeName"`
+	CodeThemeName uibuilder.CodeThemeName `json:"codeThemeName"`
 }
 
 var DefaultAppConf = &AppConfiguration{
@@ -41,7 +42,8 @@ var DefaultAppConf = &AppConfiguration{
 	AllSnippets: AllSnippetsConf{
 		PageSize: 10,
 	},
-	ThemeName: uibuilder.DefaultTheme,
+	AppThemeName:  uibuilder.DefaultAppTheme,
+	CodeThemeName: uibuilder.DefaultCodeTheme,
 }
 
 func ReadConfiguration() *AppConfiguration {
@@ -57,7 +59,7 @@ func ReadConfiguration() *AppConfiguration {
 		}
 	}(configFile)
 
-	var appState AppConfiguration
+	appState := *DefaultAppConf
 	jsonParser := json.NewDecoder(configFile)
 	if err = jsonParser.Decode(&appState); err == io.EOF {
 		return DefaultAppConf
@@ -132,10 +134,18 @@ func (as *AllSnippetsConf) GetPageSize() int64 {
 	return as.PageSize
 }
 
-func SetAppTheme(name uibuilder.ThemeName) {
+func SetAppTheme(name uibuilder.AppThemeName) {
 	updateAppConfigurationFile(
 		func(state *AppConfiguration) {
-			state.ThemeName = name
+			state.AppThemeName = name
+		},
+	)
+}
+
+func SetCodeTheme(name uibuilder.CodeThemeName) {
+	updateAppConfigurationFile(
+		func(state *AppConfiguration) {
+			state.CodeThemeName = name
 		},
 	)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/widgets"
+	"github.com/gwkeit/widgets/codepreview"
 	"github.com/rivo/tview"
 )
 
@@ -18,18 +19,25 @@ type EditPage struct {
 	language                   *tview.DropDown
 	grid                       *tview.Grid
 	Frame                      *tview.Frame
+	codePreview                *codepreview.CodePreviewWidget
 	tools                      *apptools.Tools
 	logs                       *widgets.LogsWidget
 	isLangManuallySelected     atomic.Bool
 	isLangSelectFuncSuppressed atomic.Bool
-	themeName                  uibuilder.ThemeName
+	themeName                  uibuilder.AppThemeName
 }
 
-func NewPage(tools *apptools.Tools, logs *widgets.LogsWidget, themeName uibuilder.ThemeName) *EditPage {
+func NewPage(
+	tools *apptools.Tools,
+	logs *widgets.LogsWidget,
+	themeName uibuilder.AppThemeName,
+	codeThemeName uibuilder.CodeThemeName,
+) *EditPage {
 	ep := &EditPage{
-		tools:     tools,
-		logs:      logs,
-		themeName: themeName,
+		tools:       tools,
+		logs:        logs,
+		themeName:   themeName,
+		codePreview: codepreview.NewCodePreviewWidget(themeName, codeThemeName),
 	}
 
 	ep.initMetadataFields()

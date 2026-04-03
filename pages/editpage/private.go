@@ -23,6 +23,8 @@ func (ep *EditPage) loadSnippet(snippetId int64) {
 	} else {
 		ep.setLanguageOptionProgrammatically(0)
 	}
+
+	ep.updateCodePreview()
 }
 
 func (ep *EditPage) setLanguageOptionProgrammatically(index int) {
@@ -30,4 +32,13 @@ func (ep *EditPage) setLanguageOptionProgrammatically(index int) {
 	ep.isLangSelectFuncSuppressed.Store(true)
 	ep.language.SetCurrentOption(index)
 	ep.isLangSelectFuncSuppressed.Store(previousValue)
+}
+
+func (ep *EditPage) updateCodePreview() {
+	_, textOption := ep.language.GetCurrentOption()
+
+	if textOption != "" {
+		selectedLanguage := configuration.Language(textOption)
+		ep.codePreview.SetText(ep.body.GetText(), selectedLanguage)
+	}
 }

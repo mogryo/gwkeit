@@ -69,3 +69,17 @@ func (asp *AllSnippetsPage) populateTable(ctx context.Context) {
 	asp.totalSnippetAmountView.SetText(fmt.Sprintf("%d", snippetCount))
 	asp.totalPagesView.SetText(fmt.Sprintf("%d", asp.pagesAmount))
 }
+
+func (asp *AllSnippetsPage) clearMetadataFields() {
+	asp.description.SetText("", false)
+	asp.title.SetText("", false)
+	asp.urls.SetText("", false)
+}
+
+func (asp *AllSnippetsPage) focusTable() {
+	if asp.table.GetRowCount() > 1 {
+		asp.tools.Focus(asp.table)
+		asp.table.SetSelectable(true, false)
+		asp.table.Select(1, 0)
+	}
+}

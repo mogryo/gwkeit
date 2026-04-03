@@ -125,7 +125,7 @@ func (sp *SearchPage) initGridLayout() {
 		AddItem(uibuilder.NewWidget(sp.themeName, "Logs:", sp.logs.View), 0, 1, 2, 1, 0, 0, false).
 		AddItem(uibuilder.NewWidget(sp.themeName, "List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
 	metadataFlex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget(sp.themeName, "Title:", sp.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget(sp.themeName, "Title:", sp.title), 3, 1, false).
 		AddItem(uibuilder.NewWidget(sp.themeName, "Description:", sp.description), 0, 3, false).
 		AddItem(uibuilder.NewWidget(sp.themeName, "URLs:", sp.urls), 0, 3, false)
 

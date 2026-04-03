@@ -2,16 +2,24 @@ package uibuilder
 
 import "github.com/gdamore/tcell/v2"
 
-type ThemeName string
+type AppThemeName string
+type CodeThemeName string
 
 const (
-	DefaultTheme ThemeName = "default"
-	LightTheme   ThemeName = "light"
-	DarkTheme    ThemeName = "dark"
-	GreyTheme    ThemeName = "grey"
+	DefaultAppTheme AppThemeName = "default"
+	LightAppTheme   AppThemeName = "light"
+	DarkAppTheme    AppThemeName = "dark"
+	GreyAppTheme    AppThemeName = "grey"
 )
 
-func (t ThemeName) String() string { return string(t) }
+const (
+	DefaultCodeTheme CodeThemeName = "default"
+	LightCodeTheme   CodeThemeName = "light"
+	DarkCodeTheme    CodeThemeName = "dark"
+)
+
+func (t AppThemeName) String() string  { return string(t) }
+func (t CodeThemeName) String() string { return string(t) }
 
 type AppThemeConfig struct {
 	MainColor        tcell.Color `json:"mainColor"`
@@ -25,8 +33,40 @@ type AppThemeConfig struct {
 	TimestampMessage string      `json:"timestampMessage"`
 }
 
-var appThemes = map[ThemeName]AppThemeConfig{
-	DefaultTheme: {
+type CodeThemeConfig struct {
+	Keyword    string `json:"keyword"`
+	String     string `json:"string"`
+	Comment    string `json:"comment"`
+	Number     string `json:"number"`
+	Identifier string `json:"identifier"`
+}
+
+var codeThemes = map[CodeThemeName]CodeThemeConfig{
+	DefaultCodeTheme: {
+		Keyword:    "[#66aaff]",
+		String:     "[#e6db74]",
+		Comment:    "[grey]",
+		Number:     "[#73c973]",
+		Identifier: "[white]",
+	},
+	LightCodeTheme: {
+		Keyword:    "[#005fcc]",
+		String:     "[#8a6d3b]",
+		Comment:    "[#808080]",
+		Number:     "[#2f8f2f]",
+		Identifier: "[black]",
+	},
+	DarkCodeTheme: {
+		Keyword:    "[#66aaff]",
+		String:     "[#e6db74]",
+		Comment:    "[#a0a0a0]",
+		Number:     "[#73c973]",
+		Identifier: "[white]",
+	},
+}
+
+var appThemes = map[AppThemeName]AppThemeConfig{
+	DefaultAppTheme: {
 		MainColor:        tcell.ColorDefault,
 		SelectedColor:    tcell.ColorGreen,
 		SecondaryColor:   tcell.ColorDefault,
@@ -37,7 +77,7 @@ var appThemes = map[ThemeName]AppThemeConfig{
 		ErrorMessage:     "#ff4689",
 		TimestampMessage: "grey",
 	},
-	LightTheme: {
+	LightAppTheme: {
 		MainColor:        tcell.ColorBlack,
 		SecondaryColor:   tcell.ColorDarkSlateGrey,
 		SelectedColor:    tcell.ColorGreen,
@@ -48,7 +88,7 @@ var appThemes = map[ThemeName]AppThemeConfig{
 		ErrorMessage:     "#cc2f5a",
 		TimestampMessage: "grey",
 	},
-	DarkTheme: {
+	DarkAppTheme: {
 		MainColor:        tcell.ColorWhite,
 		SecondaryColor:   tcell.ColorSilver,
 		SelectedColor:    tcell.ColorGreen,
@@ -59,7 +99,7 @@ var appThemes = map[ThemeName]AppThemeConfig{
 		ErrorMessage:     "#ff6b8b",
 		TimestampMessage: "#a0a0a0",
 	},
-	GreyTheme: {
+	GreyAppTheme: {
 		MainColor:        tcell.ColorWhiteSmoke,
 		SelectedColor:    tcell.ColorGreen,
 		SecondaryColor:   tcell.ColorGainsboro,
@@ -72,10 +112,19 @@ var appThemes = map[ThemeName]AppThemeConfig{
 	},
 }
 
-func GetTheme(themeName ThemeName) *AppThemeConfig {
+func GetAppTheme(themeName AppThemeName) *AppThemeConfig {
 	theme, ok := appThemes[themeName]
 	if !ok {
-		panic("Theme not found")
+		panic("Application theme not found")
+	}
+
+	return &theme
+}
+
+func GetCodeTheme(themeName CodeThemeName) *CodeThemeConfig {
+	theme, ok := codeThemes[themeName]
+	if !ok {
+		panic("Code theme not found")
 	}
 
 	return &theme

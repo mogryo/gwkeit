@@ -31,14 +31,14 @@ type SearchPage struct {
 	tools             *apptools.Tools
 	logs              *widgets.LogsWidget
 	pageConf          configuration.ISearchPageConf
-	themeName         uibuilder.ThemeName
+	themeName         uibuilder.AppThemeName
 }
 
 func NewPage(
 	tools *apptools.Tools,
 	pageState configuration.ISearchPageConf,
 	logs *widgets.LogsWidget,
-	themeName uibuilder.ThemeName,
+	themeName uibuilder.AppThemeName,
 ) *SearchPage {
 	searchPage := &SearchPage{
 		selectedSnippetId: -1,

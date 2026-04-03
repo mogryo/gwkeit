@@ -36,16 +36,18 @@ var shortcutDescription = []apptools.ShortcutDescription{
 
 func (ep *EditPage) initMetadataFields() {
 	ep.body = uibuilder.NewTextArea(ep.themeName, "", "")
+	ep.body.SetChangedFunc(ep.updateCodePreview)
 	ep.title = uibuilder.NewTextArea(ep.themeName, "", "")
 	ep.description = uibuilder.NewTextArea(ep.themeName, "", "")
 	ep.urls = uibuilder.NewTextArea(ep.themeName, "", "")
 	ep.language = uibuilder.NewDropDown(ep.themeName, "")
-	ep.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
+	ep.language.SetOptions(configuration.LanguagesStrings, nil)
 	ep.language.SetSelectedFunc(func(_ string, _ int) {
-		if !ep.isLangSelectFuncSuppressed.Load() {
+		if !ep.isLangSelectFuncSuppressed.Load() && !ep.isLangManuallySelected.Load() {
 			ep.isLangManuallySelected.Store(true)
 			ep.logs.AddInfoLogs([]string{"Language detect is disabled"})
 		}
+		ep.updateCodePreview()
 	})
 	ep.setLanguageOptionProgrammatically(0)
 }
@@ -56,12 +58,13 @@ func (ep *EditPage) initLayoutGrid() {
 		SetColumns(0, 50).
 		SetBorders(false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget(ep.themeName, "Title:", ep.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget(ep.themeName, "Title:", ep.title), 3, 1, false).
 		AddItem(uibuilder.NewWidget(ep.themeName, "Description:", ep.description), 0, 3, false).
 		AddItem(uibuilder.NewWidget(ep.themeName, "URLs:", ep.urls), 0, 2, false).
 		AddItem(uibuilder.NewWidget(ep.themeName, "Language:", ep.language), 3, 1, false)
 
-	ep.grid.AddItem(uibuilder.NewWidget(ep.themeName, "Code:", ep.body), 0, 0, 2, 1, 0, 100, false).
+	ep.grid.AddItem(uibuilder.NewWidget(ep.themeName, "Code:", ep.body), 0, 0, 1, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(ep.themeName, "Code Preview:", ep.codePreview.View), 1, 0, 1, 1, 0, 100, false).
 		AddItem(uibuilder.NewWidget(ep.themeName, "Logs:", ep.logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(flex, 1, 1, 1, 1, 0, 100, false)
 	ep.grid.SetBackgroundColor(tcell.ColorDefault)

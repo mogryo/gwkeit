@@ -134,11 +134,7 @@ func (asp *AllSnippetsPage) initInputCapture() {
 			asp.tools.Focus(asp.pageSizeInput)
 			resultEvent = nil
 		case tcell.KeyCtrlT:
-			if asp.table.GetRowCount() > 1 {
-				asp.tools.Focus(asp.table)
-				asp.table.SetSelectable(true, false)
-				asp.table.Select(1, 0)
-			}
+			asp.focusTable()
 			resultEvent = nil
 		case tcell.KeyCtrlE:
 			if asp.selectedSnippetId > -1 {

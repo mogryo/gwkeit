@@ -41,13 +41,14 @@ func (ap *AdditionPage) initGridLayout() {
 		SetColumns(0, 50).
 		SetBorders(false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(uibuilder.NewWidget(ap.themeName, "Title:", ap.title), 0, 1, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "Title:", ap.title), 3, 1, false).
 		AddItem(uibuilder.NewWidget(ap.themeName, "Description:", ap.description), 0, 3, false).
 		AddItem(uibuilder.NewWidget(ap.themeName, "URLs:", ap.urls), 0, 2, false).
 		AddItem(uibuilder.NewWidget(ap.themeName, "Language:", ap.language), 3, 1, false)
 
 	ap.grid.
-		AddItem(uibuilder.NewWidget(ap.themeName, "Code:", ap.body), 0, 0, 2, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "Code:", ap.body), 0, 0, 1, 1, 0, 100, false).
+		AddItem(uibuilder.NewWidget(ap.themeName, "Code Preview:", ap.codePreview.View), 1, 0, 1, 1, 0, 100, false).
 		AddItem(uibuilder.NewWidget(ap.themeName, "Logs:", ap.logs.View), 0, 1, 1, 1, 0, 100, false).
 		AddItem(flex, 1, 1, 1, 1, 0, 100, false)
 	ap.grid.SetBackgroundColor(tcell.ColorDefault)
@@ -55,16 +56,18 @@ func (ap *AdditionPage) initGridLayout() {
 
 func (ap *AdditionPage) initMetadataFields() {
 	ap.body = uibuilder.NewTextArea(ap.themeName, "", "")
+	ap.body.SetChangedFunc(ap.updateCodePreview)
 	ap.title = uibuilder.NewTextArea(ap.themeName, "", "")
 	ap.description = uibuilder.NewTextArea(ap.themeName, "", "")
 	ap.urls = uibuilder.NewTextArea(ap.themeName, "", "")
 	ap.language = uibuilder.NewDropDown(ap.themeName, "")
 	ap.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
 	ap.language.SetSelectedFunc(func(_ string, _ int) {
-		if !ap.isLangSelectFuncSuppressed.Load() {
+		if !ap.isLangSelectFuncSuppressed.Load() && !ap.isLangManuallySelected.Load() {
 			ap.isLangManuallySelected.Store(true)
 			ap.logs.AddInfoLogs([]string{"Language detect is disabled"})
 		}
+		ap.updateCodePreview()
 	})
 	ap.setLanguageOptionProgrammatically(0)
 }
