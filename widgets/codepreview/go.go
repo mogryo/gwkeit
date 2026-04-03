@@ -148,12 +148,25 @@ func addGoDynamicColors(codeTheme *uibuilder.CodeThemeConfig, text string) strin
 		// Numbers
 		if isDigit(r) {
 			j := i + size
+			prev := r
 			for j < len(text) {
 				rr, ss := utf8.DecodeRuneInString(text[j:])
 				if !(unicode.IsDigit(rr) || rr == '.' || rr == 'x' || rr == 'X' || rr == 'e' || rr == 'E' || rr == 'p' || rr == 'P' || rr == '+' || rr == '-' || (rr >= 'a' && rr <= 'f') || (rr >= 'A' && rr <= 'F')) {
 					break
 				}
 				j += ss
+				isHexAlpha := (rr >= 'a' && rr <= 'f') || (rr >= 'A' && rr <= 'F')
+				if unicode.IsDigit(rr) || rr == '.' || rr == 'x' || rr == 'X' || rr == 'e' || rr == 'E' || rr == 'p' || rr == 'P' || isHexAlpha {
+					j += ss
+					prev = rr
+					continue
+				}
+				if (rr == '+' || rr == '-') && (prev == 'e' || prev == 'E' || prev == 'p' || prev == 'P') {
+					j += ss
+					prev = rr
+					continue
+				}
+				break
 			}
 			b.WriteString(codeTheme.Number)
 			b.WriteString(escape(text[i:j]))

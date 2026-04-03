@@ -61,7 +61,7 @@ func (ap *AdditionPage) initMetadataFields() {
 	ap.description = uibuilder.NewTextArea(ap.themeName, "", "")
 	ap.urls = uibuilder.NewTextArea(ap.themeName, "", "")
 	ap.language = uibuilder.NewDropDown(ap.themeName, "")
-	ap.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
+	ap.language.SetOptions(configuration.LanguagesStrings, nil)
 	ap.language.SetSelectedFunc(func(_ string, _ int) {
 		if !ap.isLangSelectFuncSuppressed.Load() && !ap.isLangManuallySelected.Load() {
 			ap.isLangManuallySelected.Store(true)
@@ -175,7 +175,7 @@ func (ap *AdditionPage) initLangDetector() {
 						detectedLang := langdetector.Detect(bodyText)
 						langIndex := slices.Index(configuration.LanguagesStrings, detectedLang.String())
 						ap.tools.QueueUpdateDraw(func() {
-							ap.setLanguageOptionProgrammatically(langIndex + 1)
+							ap.setLanguageOptionProgrammatically(langIndex)
 						})
 					}
 				case <-ap.tools.Ctx.Done():

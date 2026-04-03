@@ -47,36 +47,30 @@ func addRubyDynamicColors(codeTheme *uibuilder.CodeThemeConfig, text string) str
 			continue
 		}
 
-		if r == '=' && i+1 < len(text) {
-			next, _ := utf8.DecodeRuneInString(text[i+1:])
-			if next == 'b' {
-				j := i + 2
-				for j < len(text) {
-					if text[j] == '\n' && j+1 < len(text) {
-						lineStart := j + 1
-						k := lineStart
-						for k < len(text) && (text[k] == ' ' || text[k] == '\t') {
-							k++
-						}
-						if k < len(text) && text[k] == '=' {
-							afterEq, _ := utf8.DecodeRuneInString(text[k+1:])
-							if afterEq == 'e' {
-								j = k + 2
-								break
-							}
-						}
+		if r == '=' && (i == 0 || text[i-1] == '\n') && strings.HasPrefix(text[i:], "=begin") {
+			j := i + 2
+			for j < len(text) {
+				if text[j] == '\n' && j+1 < len(text) {
+					lineStart := j + 1
+					k := lineStart
+					for k < len(text) && (text[k] == ' ' || text[k] == '\t') {
+						k++
 					}
-					j++
+					if k < len(text) && strings.HasPrefix(text[k:], "=end") {
+						j = k + len("=end")
+						break
+					}
 				}
-				if j > len(text) {
-					j = len(text)
-				}
-				b.WriteString(codeTheme.Comment)
-				b.WriteString(escape(text[i:j]))
-				b.WriteString(colorReset)
-				i = j
-				continue
+				j++
 			}
+			if j > len(text) {
+				j = len(text)
+			}
+			b.WriteString(codeTheme.Comment)
+			b.WriteString(escape(text[i:j]))
+			b.WriteString(colorReset)
+			i = j
+			continue
 		}
 
 		if r == '"' || r == '\'' || r == '`' {
