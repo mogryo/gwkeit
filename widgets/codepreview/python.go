@@ -79,7 +79,7 @@ func addPythonDynamicColors(codeTheme *uibuilder.CodeThemeConfig, text string) s
 					j := prefixEnd + nextSize
 					for j < len(text) {
 						rr, ss := utf8.DecodeRuneInString(text[j:])
-						if rr == '\\' && j+ss < len(text) && quote == '"' {
+						if rr == '\\' && j+ss < len(text) && r != 'r' && r != 'R' {
 							j += ss
 							_, ss2 := utf8.DecodeRuneInString(text[j:])
 							j += ss2
