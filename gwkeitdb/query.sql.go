@@ -313,6 +313,43 @@ func (q *Queries) FindTagsByTag(ctx context.Context, tags []string) ([]Tag, erro
 	return items, nil
 }
 
+const findTagsIdByName = `-- name: FindTagsIdByName :many
+SELECT t.id FROM tags t WHERE tag IN (/*SLICE:tags*/?)
+`
+
+func (q *Queries) FindTagsIdByName(ctx context.Context, tags []string) ([]int64, error) {
+	query := findTagsIdByName
+	var queryParams []interface{}
+	if len(tags) > 0 {
+		for _, v := range tags {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:tags*/?", strings.Repeat(",?", len(tags))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:tags*/?", "NULL", 1)
+	}
+	rows, err := q.query(ctx, nil, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findUrlsBySnippetId = `-- name: FindUrlsBySnippetId :many
 SELECT u.id, u.url, u.snippet_id
 FROM urls u
@@ -379,7 +416,7 @@ func (q *Queries) InsertSnippet(ctx context.Context, arg InsertSnippetParams) (i
 }
 
 const insertSnippetTag = `-- name: InsertSnippetTag :exec
-INSERT INTO snippets_tags (snippet_id, tag_id) VALUES (?, ?)
+INSERT OR IGNORE INTO snippets_tags (snippet_id, tag_id) VALUES (?, ?)
 `
 
 type InsertSnippetTagParams struct {
@@ -392,19 +429,17 @@ func (q *Queries) InsertSnippetTag(ctx context.Context, arg InsertSnippetTagPara
 	return err
 }
 
-const insertTag = `-- name: InsertTag :one
-INSERT INTO tags (tag) VALUES (?) RETURNING id
+const insertTag = `-- name: InsertTag :exec
+INSERT OR IGNORE INTO tags (tag) VALUES (?)
 `
 
-func (q *Queries) InsertTag(ctx context.Context, tag string) (int64, error) {
-	row := q.queryRow(ctx, q.insertTagStmt, insertTag, tag)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) InsertTag(ctx context.Context, tag string) error {
+	_, err := q.exec(ctx, q.insertTagStmt, insertTag, tag)
+	return err
 }
 
-const insertUrl = `-- name: InsertUrl :one
-INSERT INTO urls (url, snippet_id) VALUES (?, ?) RETURNING id
+const insertUrl = `-- name: InsertUrl :exec
+INSERT OR IGNORE INTO urls (url, snippet_id) VALUES (?, ?)
 `
 
 type InsertUrlParams struct {
@@ -412,11 +447,9 @@ type InsertUrlParams struct {
 	SnippetID int64
 }
 
-func (q *Queries) InsertUrl(ctx context.Context, arg InsertUrlParams) (int64, error) {
-	row := q.queryRow(ctx, q.insertUrlStmt, insertUrl, arg.Url, arg.SnippetID)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) InsertUrl(ctx context.Context, arg InsertUrlParams) error {
+	_, err := q.exec(ctx, q.insertUrlStmt, insertUrl, arg.Url, arg.SnippetID)
+	return err
 }
 
 const snippetTagExists = `-- name: SnippetTagExists :one

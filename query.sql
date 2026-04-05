@@ -4,14 +4,14 @@ SELECT COUNT(*) FROM snippets;
 -- name: InsertSnippet :one
 INSERT INTO snippets (title, body, description, url, language) VALUES (?, ?, ?, ?, ?) RETURNING id;
 
--- name: InsertTag :one
-INSERT INTO tags (tag) VALUES (?) RETURNING id;
+-- name: InsertTag :exec
+INSERT OR IGNORE INTO tags (tag) VALUES (?);
 
--- name: InsertUrl :one
-INSERT INTO urls (url, snippet_id) VALUES (?, ?) RETURNING id;
+-- name: InsertUrl :exec
+INSERT OR IGNORE INTO urls (url, snippet_id) VALUES (?, ?);
 
 -- name: InsertSnippetTag :exec
-INSERT INTO snippets_tags (snippet_id, tag_id) VALUES (?, ?);
+INSERT OR IGNORE INTO snippets_tags (snippet_id, tag_id) VALUES (?, ?);
 
 -- name: UpdateSnippet :exec
 UPDATE snippets SET title = ?, body = ?, description = ?, url = ?, language = ?, updated_at = current_timestamp WHERE id = ?;
@@ -47,6 +47,9 @@ SELECT t.*
 FROM tags t
 JOIN snippets_tags st on t.id = st.tag_id
 WHERE st.snippet_id = ?;
+
+-- name: FindTagsIdByName :many
+SELECT t.id FROM tags t WHERE tag IN (sqlc.slice('tags'));
 
 -- name: FindTagsByTag :many
 SELECT * FROM tags WHERE tag IN (sqlc.slice('tags'));
