@@ -35,28 +35,35 @@ func (r *Repository) SaveSnippet(
 	existingTagNames := slicelib.Map(existingTags, func(tag gwkeitdb.Tag) string {
 		return tag.Tag
 	})
-	existingTagIds := slicelib.Map(existingTags, func(tag gwkeitdb.Tag) int64 {
-		return tag.ID
-	})
 
 	nonExistingTags := slicelib.Difference(snippetInput.Tags, existingTagNames)
 	if len(nonExistingTags) > 0 {
 		for _, tag := range nonExistingTags {
-			id, _ := qtx.InsertTag(ctx, tag)
-			existingTagIds = append(existingTagIds, id)
+			err := qtx.InsertTag(ctx, tag)
+			if err != nil {
+				return 0, err
+			}
 		}
 	}
+	allTagsIds, err := qtx.FindTagsIdByName(ctx, snippetInput.Tags)
+	if err != nil {
+		return 0, err
+	}
 
-	urlIds := make([]int64, 0)
 	if len(snippetInput.UrlList) > 0 {
 		for _, url := range snippetInput.UrlList {
-			id, _ := qtx.InsertUrl(ctx, gwkeitdb.InsertUrlParams{Url: url, SnippetID: snippetId})
-			urlIds = append(urlIds, id)
+			err := qtx.InsertUrl(ctx, gwkeitdb.InsertUrlParams{Url: url, SnippetID: snippetId})
+			if err != nil {
+				return 0, err
+			}
 		}
 	}
 
-	for _, tagId := range existingTagIds {
-		_ = qtx.InsertSnippetTag(ctx, gwkeitdb.InsertSnippetTagParams{SnippetID: snippetId, TagID: tagId})
+	for _, tagId := range allTagsIds {
+		err = qtx.InsertSnippetTag(ctx, gwkeitdb.InsertSnippetTagParams{SnippetID: snippetId, TagID: tagId})
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	return snippetId, tx.Commit()
@@ -82,6 +89,7 @@ func (r *Repository) UpdateSnippet(
 			Title:       newSnippetData.Title,
 			Body:        newSnippetData.Body,
 			Description: newSnippetData.Description,
+			Url:         newSnippetData.UrlText,
 			Language:    sql.NullString{String: newSnippetData.Language, Valid: newSnippetData.Language != ""},
 		},
 	)
@@ -127,19 +135,21 @@ func (r *Repository) updateSnippetTags(
 
 	newSnippetTagNames := slicelib.Difference(newTagNames, slicelib.Map(existingSnippetTags, func(tag gwkeitdb.Tag) string { return tag.Tag }))
 	existingTagNames, _ := qtx.FindTagsByTag(ctx, newSnippetTagNames)
-	existingTagIds := slicelib.Map(existingTagNames, func(tag gwkeitdb.Tag) int64 { return tag.ID })
 
 	tagNamesToAdd := slicelib.DifferenceGetB(newSnippetTagNames, existingTagNames, func(tag gwkeitdb.Tag) string { return tag.Tag })
 	for _, tagName := range tagNamesToAdd {
-		id, err := qtx.InsertTag(ctx, tagName)
+		err := qtx.InsertTag(ctx, tagName)
 		if err != nil {
 			return err
 		}
 
-		existingTagIds = append(existingTagIds, id)
+	}
+	allTagsIds, err := qtx.FindTagsIdByName(ctx, newTagNames)
+	if err != nil {
+		return err
 	}
 
-	for _, tagId := range existingTagIds {
+	for _, tagId := range allTagsIds {
 		_ = qtx.InsertSnippetTag(ctx, gwkeitdb.InsertSnippetTagParams{SnippetID: snippetId, TagID: tagId})
 	}
 
@@ -164,7 +174,7 @@ func (r *Repository) updateSnippetUrls(
 
 	newSnippetUrls := slicelib.Difference(newUrls, slicelib.Map(existingSnippetUrls, func(url gwkeitdb.Url) string { return url.Url }))
 	for _, url := range newSnippetUrls {
-		_, err = qtx.InsertUrl(ctx, gwkeitdb.InsertUrlParams{Url: url, SnippetID: snippetId})
+		err = qtx.InsertUrl(ctx, gwkeitdb.InsertUrlParams{Url: url, SnippetID: snippetId})
 		if err != nil {
 			return err
 		}
