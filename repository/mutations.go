@@ -150,7 +150,10 @@ func (r *Repository) updateSnippetTags(
 	}
 
 	for _, tagId := range allTagsIds {
-		_ = qtx.InsertSnippetTag(ctx, gwkeitdb.InsertSnippetTagParams{SnippetID: snippetId, TagID: tagId})
+		err = qtx.InsertSnippetTag(ctx, gwkeitdb.InsertSnippetTagParams{SnippetID: snippetId, TagID: tagId})
+		if err != nil {
+			return err
+		}
 	}
 
 	err = r.deleteOrphanTags(ctx, qtx, unusedTags)
