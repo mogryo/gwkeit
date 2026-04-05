@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/gwkeit/dto"
 	"github.com/gwkeit/gwkeitdb"
@@ -48,6 +49,9 @@ func (r *Repository) SaveSnippet(
 	allTagsIds, err := qtx.FindTagsIdByName(ctx, snippetInput.Tags)
 	if err != nil {
 		return 0, err
+	}
+	if len(allTagsIds) != len(snippetInput.Tags) {
+		return 0, errors.New("fatal error creating tags for new snippet")
 	}
 
 	if len(snippetInput.UrlList) > 0 {
@@ -147,6 +151,9 @@ func (r *Repository) updateSnippetTags(
 	allTagsIds, err := qtx.FindTagsIdByName(ctx, newTagNames)
 	if err != nil {
 		return err
+	}
+	if len(allTagsIds) != len(newTagNames) {
+		return errors.New("fatal error updating tags for new snippet")
 	}
 
 	for _, tagId := range allTagsIds {
