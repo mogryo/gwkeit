@@ -144,3 +144,10 @@ func NewPageFrame(themeName AppThemeName, primitive tview.Primitive, text string
 
 	return frame
 }
+
+func NewGrid(_ AppThemeName) *tview.Grid {
+	grid := tview.NewGrid().SetBorders(false)
+	grid.SetBackgroundColor(tcell.ColorDefault)
+
+	return grid
+}
