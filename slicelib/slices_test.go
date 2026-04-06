@@ -53,4 +53,16 @@ func Test_SubSlice(t *testing.T) {
 		res := SubSlice([]int{1, 2, 3, 4, 5}, 2, 10)
 		assert.Equal(t, []int{3, 4, 5}, res)
 	})
+	t.Run("should return correct subslice for valid range", func(t *testing.T) {
+		res := SubSlice([]int{1, 2, 3, 4, 5}, 1, 3)
+		assert.Equal(t, []int{2, 3}, res)
+	})
+	t.Run("should clamp negative start to zero", func(t *testing.T) {
+		res := SubSlice([]int{1, 2, 3}, -2, 2)
+		assert.Equal(t, []int{1, 2}, res)
+	})
+	t.Run("should return empty slice when start equals end", func(t *testing.T) {
+		res := SubSlice([]int{1, 2, 3}, 2, 2)
+		assert.Empty(t, res)
+	})
 }
