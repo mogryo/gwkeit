@@ -39,3 +39,18 @@ func Test_Concat(t *testing.T) {
 		assert.Equal(t, []int{1, 2, 3, 4, 5, 6}, res)
 	})
 }
+
+func Test_SubSlice(t *testing.T) {
+	t.Run("should return empty list, if input list is empty", func(t *testing.T) {
+		res := SubSlice([]int{}, 0, 1)
+		assert.Empty(t, res)
+	})
+	t.Run("should return empty list, if start > end", func(t *testing.T) {
+		res := SubSlice([]int{1, 2, 3, 4, 5}, 3, 2)
+		assert.Empty(t, res)
+	})
+	t.Run("should return all elements after start, if end exceeds list length", func(t *testing.T) {
+		res := SubSlice([]int{1, 2, 3, 4, 5}, 2, 10)
+		assert.Equal(t, []int{3, 4, 5}, res)
+	})
+}

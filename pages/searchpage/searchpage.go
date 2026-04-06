@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	shortcutRunes = []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'}
+	shortcutRunes = []rune{'1', '2', '3', '4', '5', '6', '7', '8', '9'}
+	itemsPerPage  = int64(len(shortcutRunes))
 )
 
 type SearchPage struct {
@@ -26,12 +27,18 @@ type SearchPage struct {
 	Frame             *tview.Frame
 	searchType        *tview.DropDown
 	searchBox         *tview.Flex
+	paginationBox     *tview.Flex
+	totalFoundView    *tview.TextView
+	currentPageView   *tview.TextView
 	searchCallback    func(ctx context.Context, words []string) []gwkeitdb.Snippet
 	selectedSnippetId int64
 	tools             *apptools.Tools
 	logs              *widgets.LogsWidget
 	pageConf          configuration.ISearchPageConf
 	themeName         uibuilder.AppThemeName
+	foundSnippets     []gwkeitdb.Snippet
+	totalFoundAmount  int64
+	currentPage       int64
 }
 
 func NewPage(
@@ -46,6 +53,9 @@ func NewPage(
 		logs:              logs,
 		pageConf:          pageState,
 		themeName:         themeName,
+		totalFoundAmount:  0,
+		currentPage:       1,
+		foundSnippets:     []gwkeitdb.Snippet{},
 	}
 
 	searchPage.initMetadataFields()

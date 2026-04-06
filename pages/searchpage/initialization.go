@@ -4,10 +4,12 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/configuration"
+	"github.com/gwkeit/gwkeitdb"
 	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/uibuilder"
 	"github.com/gwkeit/utils"
@@ -46,21 +48,21 @@ func (sp *SearchPage) initSearchField() {
 
 		sp.resultList.Clear()
 		if len(filteredConditions) > 0 {
-			foundSnippets := sp.searchCallback(sp.tools.Ctx, filteredConditions)
-			for i, snippet := range foundSnippets {
-				sp.resultList.AddItem(
-					snippet.Title,
-					strconv.FormatInt(snippet.ID, 10),
-					utils.IfElse(i < len(shortcutRunes), shortcutRunes[i], 0),
-					nil,
-				)
-			}
+			sp.foundSnippets = sp.searchCallback(sp.tools.Ctx, filteredConditions)
+		} else {
+			sp.foundSnippets = []gwkeitdb.Snippet{}
 		}
+
+		sp.totalFoundAmount = int64(len(sp.foundSnippets))
+		sp.totalFoundView.SetText(strconv.FormatInt(sp.totalFoundAmount, 10))
+		sp.setResultListPage(1)
 	}
 
 	sp.searchField = uibuilder.NewInputField(sp.themeName, "", "").
 		SetFieldWidth(0).
-		SetAcceptanceFunc(func(text string, keyCode rune) bool { return true }).
+		SetAcceptanceFunc(func(text string, keyCode rune) bool {
+			return unicode.IsLetter(keyCode) || unicode.IsDigit(keyCode) || unicode.IsSpace(keyCode)
+		}).
 		SetDoneFunc(func(key tcell.Key) {
 			if sp.resultList.GetItemCount() == 0 {
 				return
@@ -114,16 +116,27 @@ func (sp *SearchPage) initResultList() {
 			sp.description.SetText(snippet.Description, true)
 			sp.urls.SetText(snippet.Url, true)
 		})
+	sp.totalFoundView = uibuilder.NewTextView(sp.themeName, strconv.FormatInt(sp.totalFoundAmount, 10))
+	sp.currentPageView = uibuilder.NewTextView(sp.themeName, strconv.FormatInt(sp.currentPage, 10))
 }
 
 func (sp *SearchPage) initGridLayout() {
-	sp.grid = tview.NewGrid().
+	sp.grid = uibuilder.NewGrid(sp.themeName).
 		SetRows(3, 11).
 		SetColumns(0, 50).
-		SetBorders(false).
 		AddItem(uibuilder.NewWidget(sp.themeName, "Search:", sp.searchBox), 0, 0, 1, 1, 0, 0, false).
-		AddItem(uibuilder.NewWidget(sp.themeName, "Logs:", sp.logs.View), 0, 1, 2, 1, 0, 0, false).
-		AddItem(uibuilder.NewWidget(sp.themeName, "List:", sp.resultList), 1, 0, 1, 1, 0, 0, false)
+		AddItem(uibuilder.NewWidget(sp.themeName, "Logs:", sp.logs.View), 0, 1, 2, 1, 0, 0, false)
+
+	pageStatsFlex := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(uibuilder.NewWidget(sp.themeName, "Current page:", sp.currentPageView), 0, 1, false).
+		AddItem(uibuilder.NewWidget(sp.themeName, "Total found:", sp.totalFoundView), 0, 1, false)
+
+	resultRow := tview.NewFlex().SetDirection(tview.FlexColumn).
+		AddItem(uibuilder.NewWidget(sp.themeName, "List:", sp.resultList), 0, 3, false).
+		AddItem(pageStatsFlex, 0, 1, false)
+
+	sp.grid.AddItem(resultRow, 1, 0, 1, 1, 0, 100, false)
+
 	metadataFlex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(uibuilder.NewWidget(sp.themeName, "Title:", sp.title), 3, 1, false).
 		AddItem(uibuilder.NewWidget(sp.themeName, "Description:", sp.description), 0, 3, false).
@@ -131,8 +144,6 @@ func (sp *SearchPage) initGridLayout() {
 
 	sp.grid.AddItem(uibuilder.NewWidget(sp.themeName, "Code:", sp.body), 2, 0, 1, 1, 0, 100, false).
 		AddItem(metadataFlex, 2, 1, 1, 1, 0, 100, false)
-
-	sp.grid.SetBackgroundColor(tcell.ColorDefault)
 }
 
 func (sp *SearchPage) initInputCapture() {
@@ -169,6 +180,15 @@ func (sp *SearchPage) initInputCapture() {
 			resultEvent = nil
 		case tcell.KeyCtrlO:
 			sp.tools.Focus(sp.searchType)
+			resultEvent = nil
+		}
+
+		if event.Rune() == '{' {
+			sp.previousResultPage()
+			resultEvent = nil
+		}
+		if event.Rune() == '}' {
+			sp.nextResultPage()
 			resultEvent = nil
 		}
 
