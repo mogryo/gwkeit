@@ -29,7 +29,9 @@ func (sp *SearchPage) setResultListPage(newPage int64) {
 			strconv.FormatInt(newPage, 10) + " of " + strconv.FormatInt((sp.totalFoundAmount-1)/itemsPerPage+1, 10),
 		)
 	}
-	items := slicelib.SubSlice(sp.foundSnippets, int((sp.currentPage-1)*itemsPerPage), int(itemsPerPage)*int(sp.currentPage))
+	startIdx := int((sp.currentPage - 1) * itemsPerPage)
+	endIdx := int(sp.currentPage * itemsPerPage)
+	items := slicelib.SubSlice(sp.foundSnippets, startIdx, endIdx)
 
 	sp.resultList.Clear()
 	for i, snippet := range items {
