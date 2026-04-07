@@ -39,6 +39,9 @@ func ExecuteTUI() {
 	}
 
 	goose.SetBaseFS(embedMigrations)
+	if !configuration.IsGooseLoggingEnabled {
+		goose.SetLogger(goose.NopLogger())
+	}
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		panic(err)
 	}
