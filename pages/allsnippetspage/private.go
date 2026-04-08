@@ -83,3 +83,19 @@ func (asp *AllSnippetsPage) focusTable() {
 		asp.table.Select(1, 0)
 	}
 }
+
+func (asp *AllSnippetsPage) showNextTablePage() {
+	if asp.currentPage < asp.pagesAmount {
+		asp.currentPage++
+		asp.currentPageInput.SetText(fmt.Sprintf("%d", asp.currentPage))
+		asp.populateTable(asp.tools.Ctx)
+	}
+}
+
+func (asp *AllSnippetsPage) showPreviousTablePage() {
+	if asp.currentPage > 1 {
+		asp.currentPage--
+		asp.currentPageInput.SetText(fmt.Sprintf("%d", asp.currentPage))
+		asp.populateTable(asp.tools.Ctx)
+	}
+}

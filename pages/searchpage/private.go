@@ -44,21 +44,21 @@ func (sp *SearchPage) setResultListPage(newPage int64) {
 	}
 }
 
-// nextResultPage
+// showNextResultPage
 /**
 Move to the next result page if there are more results available.
 */
-func (sp *SearchPage) nextResultPage() {
+func (sp *SearchPage) showNextResultPage() {
 	if sp.totalFoundAmount > itemsPerPage*sp.currentPage {
 		sp.setResultListPage(sp.currentPage + 1)
 	}
 }
 
-// previousResultPage
+// showPreviousResultPage
 /**
 Move to the previous result page if there is such.
 */
-func (sp *SearchPage) previousResultPage() {
+func (sp *SearchPage) showPreviousResultPage() {
 	if sp.currentPage > 1 {
 		sp.setResultListPage(sp.currentPage - 1)
 	}

@@ -15,6 +15,8 @@ var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+I", "Focus page size field"},
 	{"ctrl+T", "Focus table"},
 	{"ctrl+E", "Edit selected snippet"},
+	{"}", "Show next table page"},
+	{"{", "Show previous table page"},
 }
 
 func (asp *AllSnippetsPage) initCurrentPageInput() {
@@ -142,6 +144,15 @@ func (asp *AllSnippetsPage) initInputCapture() {
 			} else {
 				asp.logs.AddErrorLogs([]string{"No snippet selected."})
 			}
+			resultEvent = nil
+		}
+
+		if event.Rune() == '}' {
+			asp.showNextTablePage()
+			resultEvent = nil
+		}
+		if event.Rune() == '{' {
+			asp.showPreviousTablePage()
 			resultEvent = nil
 		}
 

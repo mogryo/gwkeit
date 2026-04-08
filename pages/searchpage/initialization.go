@@ -23,6 +23,8 @@ var shortcutDescription = []apptools.ShortcutDescription{
 	{Key: "ctrl+O", Description: "Focus search type"},
 	{Key: "ctrl+C", Description: "Copy body"},
 	{Key: "ctrl+E", Description: "Edit snippet"},
+	{"}", "Show next result page"},
+	{"{", "Show previous result page"},
 }
 
 func (sp *SearchPage) initMetadataFields() {
@@ -183,12 +185,12 @@ func (sp *SearchPage) initInputCapture() {
 			resultEvent = nil
 		}
 
-		if event.Rune() == '{' {
-			sp.previousResultPage()
+		if event.Rune() == '}' {
+			sp.showNextResultPage()
 			resultEvent = nil
 		}
-		if event.Rune() == '}' {
-			sp.nextResultPage()
+		if event.Rune() == '{' {
+			sp.showPreviousResultPage()
 			resultEvent = nil
 		}
 
