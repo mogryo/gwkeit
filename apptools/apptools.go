@@ -58,6 +58,18 @@ func (t *Tools) ShowPage(pageName configuration.PageName) {
 }
 
 func (t *Tools) Focus(component tview.Primitive) {
+	hasFocus := component.HasFocus()
+	switch component := component.(type) {
+	case *tview.TextArea:
+		if hasFocus {
+			_, _, x, y := component.GetCursor()
+			if x == 0 && y == 0 {
+				component.SetText(component.GetText(), true)
+			} else {
+				component.SetText(component.GetText(), false)
+			}
+		}
+	}
 	t.app.SetFocus(component)
 }
 
