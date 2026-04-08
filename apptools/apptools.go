@@ -62,8 +62,8 @@ func (t *Tools) Focus(component tview.Primitive) {
 	switch component := component.(type) {
 	case *tview.TextArea:
 		if hasFocus {
-			_, _, x, y := component.GetCursor()
-			if x == 0 && y == 0 {
+			_, _, toRow, toColumn := component.GetCursor()
+			if toRow == 0 && toColumn == 0 {
 				component.SetText(component.GetText(), true)
 			} else {
 				component.SetText(component.GetText(), false)
