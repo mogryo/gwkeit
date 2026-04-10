@@ -1,11 +1,13 @@
 package allsnippetspage
 
 import (
+	"slices"
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gwkeit/apptools"
 	"github.com/gwkeit/configuration"
+	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/uibuilder"
 	"github.com/rivo/tview"
 )
@@ -106,6 +108,15 @@ func (asp *AllSnippetsPage) initTable() {
 		asp.title.SetText(snippet.Title, false)
 		asp.description.SetText(snippet.Description, false)
 		asp.urls.SetText(snippet.Url, false)
+		if snippet.Language.Valid {
+			idx := slices.Index(configuration.LanguagesStrings, snippet.Language.String)
+			if idx < 0 {
+				idx = 0
+			}
+			asp.language.SetCurrentOption(idx + 1)
+		} else {
+			asp.language.SetCurrentOption(1)
+		}
 	}).
 		SetBlurFunc(func() {
 			asp.table.SetSelectable(false, false)
@@ -113,10 +124,16 @@ func (asp *AllSnippetsPage) initTable() {
 }
 
 func (asp *AllSnippetsPage) initSnippetDataFlex() *tview.Flex {
+	asp.language = uibuilder.NewDropDown(asp.themeName, "")
+	asp.language.SetOptions(slicelib.Concat([]string{""}, configuration.LanguagesStrings), nil)
+	asp.language.SetCurrentOption(0)
+	asp.language.SetDisabled(true)
+
 	return tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(uibuilder.NewWidget(asp.themeName, "Title:", asp.title), 0, 1, false).
 		AddItem(uibuilder.NewWidget(asp.themeName, "Description:", asp.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget(asp.themeName, "URLs:", asp.urls), 0, 3, false)
+		AddItem(uibuilder.NewWidget(asp.themeName, "URLs:", asp.urls), 0, 2, false).
+		AddItem(uibuilder.NewWidget(asp.themeName, "Language:", asp.language), 3, 1, false)
 }
 
 func (asp *AllSnippetsPage) initInputCapture() {
