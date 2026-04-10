@@ -15,6 +15,7 @@ type AllSnippetsPage struct {
 	title                  *tview.TextArea
 	description            *tview.TextArea
 	urls                   *tview.TextArea
+	language               *tview.DropDown
 	table                  *tview.Table
 	tools                  *apptools.Tools
 	logs                   *widgets.LogsWidget

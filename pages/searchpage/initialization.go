@@ -36,6 +36,10 @@ func (sp *SearchPage) initMetadataFields() {
 
 	sp.urls = uibuilder.NewTextArea(sp.themeName, "", "")
 	sp.urls.SetDisabled(true)
+
+	sp.language = uibuilder.NewDropDown(sp.themeName, "")
+	sp.language.SetOptions(slices.Concat([]string{""}, configuration.LanguagesStrings), nil)
+	sp.language.SetDisabled(true)
 }
 
 func (sp *SearchPage) initBody() {
@@ -117,6 +121,16 @@ func (sp *SearchPage) initResultList() {
 			sp.body.SetText(snippet.Body, true)
 			sp.description.SetText(snippet.Description, true)
 			sp.urls.SetText(snippet.Url, true)
+
+			if snippet.Language.Valid {
+				idx := slices.Index(configuration.LanguagesStrings, snippet.Language.String)
+				if idx < 0 {
+					idx = 0
+				}
+				sp.language.SetCurrentOption(idx + 1)
+			} else {
+				sp.language.SetCurrentOption(1)
+			}
 		})
 	sp.totalFoundView = uibuilder.NewTextView(sp.themeName, strconv.FormatInt(sp.totalFoundAmount, 10))
 	sp.currentPageView = uibuilder.NewTextView(sp.themeName, strconv.FormatInt(sp.currentPage, 10))
@@ -142,7 +156,8 @@ func (sp *SearchPage) initGridLayout() {
 	metadataFlex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(uibuilder.NewWidget(sp.themeName, "Title:", sp.title), 3, 1, false).
 		AddItem(uibuilder.NewWidget(sp.themeName, "Description:", sp.description), 0, 3, false).
-		AddItem(uibuilder.NewWidget(sp.themeName, "URLs:", sp.urls), 0, 3, false)
+		AddItem(uibuilder.NewWidget(sp.themeName, "URLs:", sp.urls), 0, 2, false).
+		AddItem(uibuilder.NewWidget(sp.themeName, "Language:", sp.language), 3, 1, false)
 
 	sp.grid.AddItem(uibuilder.NewWidget(sp.themeName, "Code:", sp.body), 2, 0, 1, 1, 0, 100, false).
 		AddItem(metadataFlex, 2, 1, 1, 1, 0, 100, false)

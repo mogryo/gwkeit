@@ -22,6 +22,7 @@ type SearchPage struct {
 	resultList        *tview.List
 	description       *tview.TextArea
 	urls              *tview.TextArea
+	language          *tview.DropDown
 	title             *tview.TextArea
 	grid              *tview.Grid
 	Frame             *tview.Frame

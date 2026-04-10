@@ -97,6 +97,8 @@ func NewDropDown(themeName AppThemeName, title string) *tview.DropDown {
 		).
 		SetBackgroundColor(tcell.ColorDefault)
 
+	dropDown.SetDisabledStyle(generateFieldStyle(theme))
+
 	return dropDown
 }
 
