@@ -110,12 +110,9 @@ func (asp *AllSnippetsPage) initTable() {
 		asp.urls.SetText(snippet.Url, false)
 		if snippet.Language.Valid {
 			idx := slices.Index(configuration.LanguagesStrings, snippet.Language.String)
-			if idx < 0 {
-				idx = 0
-			}
 			asp.language.SetCurrentOption(idx + 1)
 		} else {
-			asp.language.SetCurrentOption(1)
+			asp.language.SetCurrentOption(0)
 		}
 	}).
 		SetBlurFunc(func() {

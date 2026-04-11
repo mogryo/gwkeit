@@ -124,12 +124,9 @@ func (sp *SearchPage) initResultList() {
 
 			if snippet.Language.Valid {
 				idx := slices.Index(configuration.LanguagesStrings, snippet.Language.String)
-				if idx < 0 {
-					idx = 0
-				}
 				sp.language.SetCurrentOption(idx + 1)
 			} else {
-				sp.language.SetCurrentOption(1)
+				sp.language.SetCurrentOption(0)
 			}
 		})
 	sp.totalFoundView = uibuilder.NewTextView(sp.themeName, strconv.FormatInt(sp.totalFoundAmount, 10))
