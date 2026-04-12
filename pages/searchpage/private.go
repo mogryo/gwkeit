@@ -3,6 +3,7 @@ package searchpage
 import (
 	"strconv"
 
+	"github.com/gwkeit/configuration"
 	"github.com/gwkeit/slicelib"
 	"github.com/gwkeit/utils"
 )
@@ -61,5 +62,25 @@ Move to the previous result page if there is such.
 func (sp *SearchPage) showPreviousResultPage() {
 	if sp.currentPage > 1 {
 		sp.setResultListPage(sp.currentPage - 1)
+	}
+}
+
+// clearMetadataFields
+/**
+Clears the metadata fields.
+*/
+func (sp *SearchPage) clearMetadataFields() {
+	sp.title.SetText("", true)
+	sp.body.SetText("", true)
+	sp.description.SetText("", true)
+	sp.urls.SetText("", true)
+	sp.language.SetCurrentOption(0)
+}
+
+func (sp *SearchPage) goToEditPage() {
+	if sp.selectedSnippetId > -1 {
+		sp.tools.GoToPage(configuration.EditPage, sp.selectedSnippetId)
+	} else {
+		sp.logs.AddErrorLogs([]string{"No snippet selected."})
 	}
 }

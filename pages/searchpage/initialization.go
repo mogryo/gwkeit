@@ -59,6 +59,11 @@ func (sp *SearchPage) initSearchField() {
 			sp.foundSnippets = []gwkeitdb.Snippet{}
 		}
 
+		if len(sp.foundSnippets) == 0 {
+			sp.selectedSnippetId = -1
+			sp.clearMetadataFields()
+		}
+
 		sp.totalFoundAmount = int64(len(sp.foundSnippets))
 		sp.totalFoundView.SetText(strconv.FormatInt(sp.totalFoundAmount, 10))
 		sp.setResultListPage(1)
@@ -70,15 +75,10 @@ func (sp *SearchPage) initSearchField() {
 			return unicode.IsLetter(keyCode) || unicode.IsDigit(keyCode) || unicode.IsSpace(keyCode)
 		}).
 		SetDoneFunc(func(key tcell.Key) {
-			if sp.resultList.GetItemCount() == 0 {
-				return
+			if sp.resultList.GetItemCount() > 0 {
+				sp.tools.Focus(sp.resultList)
 			}
 
-			sp.tools.Focus(sp.resultList)
-			index := sp.resultList.GetCurrentItem()
-			onSelect := sp.resultList.GetSelectedFunc()
-			mainText, secText := sp.resultList.GetItemText(index)
-			onSelect(index, mainText, secText, shortcutRunes[index])
 		}).
 		SetChangedFunc(executeSearch)
 
@@ -107,7 +107,7 @@ func (sp *SearchPage) initSearchField() {
 func (sp *SearchPage) initResultList() {
 	sp.resultList = uibuilder.NewList(sp.themeName).
 		ShowSecondaryText(false).
-		SetSelectedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
+		SetChangedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
 			id, err := strconv.ParseInt(secondaryText, 10, 64)
 			sp.selectedSnippetId = id
 
@@ -186,11 +186,7 @@ func (sp *SearchPage) initInputCapture() {
 			}
 			resultEvent = nil
 		case tcell.KeyCtrlE:
-			if sp.selectedSnippetId > -1 {
-				sp.tools.GoToPage(configuration.EditPage, sp.selectedSnippetId)
-			} else {
-				sp.logs.AddErrorLogs([]string{"No snippet selected."})
-			}
+			sp.goToEditPage()
 			resultEvent = nil
 		case tcell.KeyCtrlO:
 			sp.tools.Focus(sp.searchType)
@@ -203,6 +199,10 @@ func (sp *SearchPage) initInputCapture() {
 		}
 		if event.Rune() == '{' {
 			sp.showPreviousResultPage()
+			resultEvent = nil
+		}
+		if event.Key() == tcell.KeyEnter && sp.resultList.HasFocus() {
+			sp.goToEditPage()
 			resultEvent = nil
 		}
 
