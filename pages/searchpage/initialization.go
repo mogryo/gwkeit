@@ -22,7 +22,7 @@ var shortcutDescription = []apptools.ShortcutDescription{
 	{Key: "ctrl+L", Description: "Focus result list"},
 	{Key: "ctrl+O", Description: "Focus search type"},
 	{Key: "ctrl+C", Description: "Copy body"},
-	{Key: "ctrl+E", Description: "Edit snippet"},
+	{Key: "ctrl+E/Enter", Description: "Edit snippet"},
 	{"}", "Show next result page"},
 	{"{", "Show previous result page"},
 }

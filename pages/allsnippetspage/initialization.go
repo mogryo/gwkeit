@@ -101,6 +101,7 @@ func (asp *AllSnippetsPage) initTable() {
 	asp.table = uibuilder.NewTable(asp.themeName, 1, 1)
 	asp.table.SetSelectionChangedFunc(func(row, column int) {
 		if row == 0 {
+			asp.selectedSnippetId = -1
 			asp.clearMetadataFields()
 			return
 		}
