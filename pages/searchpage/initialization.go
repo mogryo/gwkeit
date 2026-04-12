@@ -109,11 +109,10 @@ func (sp *SearchPage) initResultList() {
 		ShowSecondaryText(false).
 		SetChangedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
 			id, err := strconv.ParseInt(secondaryText, 10, 64)
-			sp.selectedSnippetId = id
-
 			if err != nil {
 				panic(err)
 			}
+			sp.selectedSnippetId = id
 
 			snippet := sp.tools.Repo.FindSnippet(sp.tools.Ctx, id)
 
