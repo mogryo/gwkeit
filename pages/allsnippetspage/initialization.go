@@ -16,7 +16,7 @@ var shortcutDescription = []apptools.ShortcutDescription{
 	{"ctrl+P", "Focus page number field"},
 	{"ctrl+I", "Focus page size field"},
 	{"ctrl+T", "Focus table"},
-	{"ctrl+E", "Edit selected snippet"},
+	{"ctrl+E/Enter", "Edit selected snippet"},
 	{"}", "Show next table page"},
 	{"{", "Show previous table page"},
 }
@@ -99,8 +99,9 @@ func (asp *AllSnippetsPage) initFrame() {
 
 func (asp *AllSnippetsPage) initTable() {
 	asp.table = uibuilder.NewTable(asp.themeName, 1, 1)
-	asp.table.SetSelectedFunc(func(row int, column int) {
+	asp.table.SetSelectionChangedFunc(func(row, column int) {
 		if row == 0 {
+			asp.clearMetadataFields()
 			return
 		}
 		snippet := asp.tools.Repo.FindSnippet(asp.tools.Ctx, asp.snippets[row-1].ID)
@@ -113,6 +114,13 @@ func (asp *AllSnippetsPage) initTable() {
 			asp.language.SetCurrentOption(idx + 1)
 		} else {
 			asp.language.SetCurrentOption(0)
+		}
+	})
+	asp.table.SetSelectedFunc(func(row int, column int) {
+		if asp.selectedSnippetId > -1 {
+			asp.tools.GoToPage(configuration.EditPage, asp.selectedSnippetId)
+		} else {
+			asp.logs.AddErrorLogs([]string{"No snippet selected."})
 		}
 	}).
 		SetBlurFunc(func() {

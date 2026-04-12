@@ -74,6 +74,7 @@ func (asp *AllSnippetsPage) clearMetadataFields() {
 	asp.description.SetText("", false)
 	asp.title.SetText("", false)
 	asp.urls.SetText("", false)
+	asp.language.SetCurrentOption(0)
 }
 
 func (asp *AllSnippetsPage) focusTable() {
