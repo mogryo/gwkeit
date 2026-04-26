@@ -69,6 +69,7 @@ func IsPython(src string) bool {
 	reRubyKeyword := regexp.MustCompile(`^\s*(unless|elsif|then|begin|rescue)\b`)
 	reRubyScope := regexp.MustCompile(`::`)
 	reRubyBlockArgs := regexp.MustCompile(`\|\s*` + ident)
+	reRejectSQL := regexp.MustCompile(`(?i)^\s*(SELECT|INSERT\s+INTO|UPDATE\s+\S+\s+SET|DELETE\s+FROM|CREATE\s+(TABLE|INDEX|VIEW|TRIGGER|SEQUENCE|SCHEMA|EXTENSION|FUNCTION|PROCEDURE|TYPE)|ALTER\s+(TABLE|SEQUENCE)|DROP\s+(TABLE|INDEX|VIEW|FUNCTION|SEQUENCE|SCHEMA|EXTENSION)|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|EXPLAIN|GRANT|REVOKE|COPY|SHOW|SAVEPOINT)\b`)
 
 	// If a line begins with a Python block keyword, it MUST match the corresponding
 	// block-line regex UNLESS we're inside a parenthesis/bracket continuation.
@@ -102,7 +103,8 @@ func IsPython(src string) bool {
 			reRubySymbol.MatchString(line) ||
 			reRubyKeyword.MatchString(line) ||
 			reRubyScope.MatchString(line) ||
-			reRubyBlockArgs.MatchString(line) {
+			reRubyBlockArgs.MatchString(line) ||
+			reRejectSQL.MatchString(line) {
 			return false
 		}
 

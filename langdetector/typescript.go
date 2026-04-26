@@ -60,6 +60,7 @@ func IsTypeScript(src string) bool {
 	reRejectGo := regexp.MustCompile(`^\s*package\b|\bfunc\b|:=`)
 	// Kotlin hint: `fun name(` or `val name`
 	reRejectKotlin := regexp.MustCompile(`^\s*(fun|val|when)\b`)
+	reRejectSQL := regexp.MustCompile(`(?i)^\s*(SELECT|INSERT\s+INTO|UPDATE\s+\S+\s+SET|DELETE\s+FROM|CREATE\s+(TABLE|INDEX|VIEW|TRIGGER|SEQUENCE|SCHEMA|EXTENSION|FUNCTION|PROCEDURE|TYPE)|ALTER\s+(TABLE|SEQUENCE)|DROP\s+(TABLE|INDEX|VIEW|FUNCTION|SEQUENCE|SCHEMA|EXTENSION)|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|EXPLAIN|GRANT|REVOKE|COPY|SHOW|SAVEPOINT)\b`)
 
 	// naive single-line string removal for bracket counting
 	reSingleQuoted := regexp.MustCompile(`'(?:\\.|[^'\\])*'`)
@@ -91,7 +92,11 @@ func IsTypeScript(src string) bool {
 		trim := strings.TrimSpace(line)
 
 		// Quick reject patterns from other languages (to avoid "anything" matching reExpr).
-		if reRejectGo.MatchString(trim) || reRejectPython.MatchString(trim) || reRejectRuby.MatchString(trim) || reRejectKotlin.MatchString(trim) {
+		if reRejectGo.MatchString(trim) ||
+			reRejectPython.MatchString(trim) ||
+			reRejectRuby.MatchString(trim) ||
+			reRejectKotlin.MatchString(trim) ||
+			reRejectSQL.MatchString(trim) {
 			return false
 		}
 
