@@ -49,12 +49,11 @@ func IsSQLite(src string) bool {
 	reVacuum := regexp.MustCompile(`(?i)^` + indent + `VACUUM\b`)
 	reAnalyze := regexp.MustCompile(`(?i)^` + indent + `ANALYZE\b`)
 	reReindex := regexp.MustCompile(`(?i)^` + indent + `REINDEX\b`)
+	reAutoincrement := regexp.MustCompile(`(?i)\bAUTOINCREMENT\b`)
+	reWithoutRowid := regexp.MustCompile(`(?i)\bWITHOUT\s+ROWID\b`)
 
 	// Inline SQL continuation / expression lines (column definitions, WHERE clauses, etc.)
 	reInline := regexp.MustCompile(`(?i)^` + indent + `(FROM|WHERE|JOIN|LEFT\s+JOIN|INNER\s+JOIN|OUTER\s+JOIN|ON|SET|VALUES|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT|OFFSET|UNION|INTERSECT|EXCEPT|AND|OR|NOT|AS|CASE|WHEN|THEN|ELSE|END|IS|IN|LIKE|BETWEEN|NULL|PRIMARY\s+KEY|FOREIGN\s+KEY|REFERENCES|UNIQUE|CHECK|DEFAULT|NOT\s+NULL|AUTOINCREMENT|WITHOUT\s+ROWID)\b`)
-
-	// PostgreSQL-specific rejects (these would not appear in SQLite)
-	reRejectPG := regexp.MustCompile(`(?i)\b(SERIAL|BIGSERIAL|SMALLSERIAL|RETURNING\b|SEQUENCE\b|EXTENSION\b|SCHEMA\b|TABLESPACE\b|INHERITS\b|EXCLUDE\b|\$\$|\$[A-Za-z][A-Za-z0-9_]*\$)`)
 
 	anyNonBlank := false
 	inBlockComment := false
@@ -82,17 +81,14 @@ func IsSQLite(src string) bool {
 			continue
 		}
 
-		// Reject PostgreSQL-specific tokens
-		if reRejectPG.MatchString(line) {
-			return false
-		}
-
 		trim := strings.TrimSpace(line)
 
 		// Check for SQLite-specific constructs
-		if rePragma.MatchString(trim) || reAttach.MatchString(trim) || reDetach.MatchString(trim) ||
-			regexp.MustCompile(`(?i)\bAUTOINCREMENT\b`).MatchString(trim) ||
-			regexp.MustCompile(`(?i)\bWITHOUT\s+ROWID\b`).MatchString(trim) {
+		if rePragma.MatchString(trim) ||
+			reAttach.MatchString(trim) ||
+			reDetach.MatchString(trim) ||
+			reAutoincrement.MatchString(trim) ||
+			reWithoutRowid.MatchString(trim) {
 			hasSQLiteSpecific = true
 		}
 
