@@ -1,6 +1,7 @@
 package langdetector
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/gwkeit/configuration"
@@ -27,9 +28,21 @@ func Detect(text string) configuration.Language {
 	if IsTypeScript(text) {
 		detectedLanguages = append(detectedLanguages, configuration.TypeScript)
 	}
+	if IsSQLite(text) {
+		detectedLanguages = append(detectedLanguages, configuration.SQLite)
+	}
+	if IsPostgreSQL(text) {
+		detectedLanguages = append(detectedLanguages, configuration.PostgreSQL)
+	}
 
 	if len(detectedLanguages) == 1 {
 		return detectedLanguages[0]
+	}
+
+	if len(detectedLanguages) == 2 &&
+		slices.Contains(detectedLanguages, configuration.SQLite) &&
+		slices.Contains(detectedLanguages, configuration.PostgreSQL) {
+		return configuration.PostgreSQL
 	}
 
 	return configuration.Text

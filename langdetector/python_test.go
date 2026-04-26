@@ -34,4 +34,12 @@ func Test_IsPython(t *testing.T) {
 		src := "if is_range_valid? from, to\n@topics = Topic.where(id: from..to).reverse\nelse\n@topics = Topic.all.last(5).reverse\nend"
 		assert.False(t, IsPython(src))
 	})
+	t.Run("should return false for SELECT specific columns  statement", func(t *testing.T) {
+		src := "SELECT name, surname FROM users"
+		assert.False(t, IsPython(src))
+	})
+	t.Run("should return false for SELECT everything statement", func(t *testing.T) {
+		src := "SELECT * FROM users"
+		assert.False(t, IsPython(src))
+	})
 }
