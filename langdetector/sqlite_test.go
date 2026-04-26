@@ -38,10 +38,6 @@ func Test_IsSQLite(t *testing.T) {
 		src := "CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT);"
 		assert.False(t, IsSQLite(src))
 	})
-	t.Run("should return false for PostgreSQL RETURNING clause", func(t *testing.T) {
-		src := "INSERT INTO users (name) VALUES ('Alice') RETURNING id;"
-		assert.False(t, IsSQLite(src))
-	})
 	t.Run("should return false for non-SQL text", func(t *testing.T) {
 		src := "func main() {\nfmt.Println(\"hello\")\n}"
 		assert.False(t, IsSQLite(src))

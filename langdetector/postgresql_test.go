@@ -9,11 +9,11 @@ import (
 func Test_IsPostgreSQL(t *testing.T) {
 	t.Run("should return true for SELECT specific columns  statement", func(t *testing.T) {
 		src := "SELECT name, surname FROM users;"
-		assert.True(t, IsSQLite(src))
+		assert.True(t, IsPostgreSQL(src))
 	})
 	t.Run("should return true for SELECT everything statement", func(t *testing.T) {
 		src := "SELECT * FROM users;"
-		assert.True(t, IsSQLite(src))
+		assert.True(t, IsPostgreSQL(src))
 	})
 	t.Run("should return true for CREATE TABLE with SERIAL", func(t *testing.T) {
 		src := "CREATE TABLE users (\n  id SERIAL PRIMARY KEY,\n  name TEXT NOT NULL\n);"
