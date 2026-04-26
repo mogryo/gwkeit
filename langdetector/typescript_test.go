@@ -26,4 +26,12 @@ func Test_IsTypeScript(t *testing.T) {
 		src := "def main():\nreturn 1\n"
 		assert.False(t, IsTypeScript(src))
 	})
+	t.Run("should return false for SELECT specific columns  statement", func(t *testing.T) {
+		src := "SELECT name, surname FROM users"
+		assert.False(t, IsTypeScript(src))
+	})
+	t.Run("should return false for SELECT everything statement", func(t *testing.T) {
+		src := "SELECT * FROM users"
+		assert.False(t, IsTypeScript(src))
+	})
 }

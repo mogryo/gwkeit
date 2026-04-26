@@ -30,4 +30,12 @@ func Test_IsKotlin(t *testing.T) {
 		src := "if query is None or query.strip() == \"\":\nif save_query_name is not None and save_query_name.strip() != \"\":\nprint(\n\"You have provided the query name for saving, but query argument is empty!\"\n)\nreturn"
 		assert.False(t, IsKotlin(src))
 	})
+	t.Run("should return false for SELECT specific columns  statement", func(t *testing.T) {
+		src := "SELECT name, surname FROM users"
+		assert.False(t, IsKotlin(src))
+	})
+	t.Run("should return false for SELECT everything statement", func(t *testing.T) {
+		src := "SELECT * FROM users"
+		assert.False(t, IsKotlin(src))
+	})
 }

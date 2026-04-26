@@ -53,6 +53,7 @@ func IsKotlin(src string) bool {
 	reRejectRuby := regexp.MustCompile(`^\s*(end|elsif|unless|begin|rescue)\b|@` + ident + `\s*=|(^|[\s\(\[\{,]):` + ident + `\b`)
 	reRejectGo := regexp.MustCompile(`^\s*func\b|:=`)
 	reRejectJS := regexp.MustCompile(`^\s*function\b`)
+	reRejectSQL := regexp.MustCompile(`(?i)^\s*(SELECT|INSERT\s+INTO|UPDATE\s+\S+\s+SET|DELETE\s+FROM|CREATE\s+(TABLE|INDEX|VIEW|TRIGGER|SEQUENCE|SCHEMA|EXTENSION|FUNCTION|PROCEDURE|TYPE)|ALTER\s+(TABLE|SEQUENCE)|DROP\s+(TABLE|INDEX|VIEW|FUNCTION|SEQUENCE|SCHEMA|EXTENSION)|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|EXPLAIN|GRANT|REVOKE|COPY|SHOW|SAVEPOINT)\b`)
 
 	// naive single-line string removal for bracket counting
 	reSingleQuoted := regexp.MustCompile(`'(?:\\.|[^'\\])*'`)
@@ -88,7 +89,11 @@ func IsKotlin(src string) bool {
 		if idx := strings.Index(rejectLine, "//"); idx >= 0 {
 			rejectLine = rejectLine[:idx]
 		}
-		if reRejectJS.MatchString(rejectLine) || reRejectGo.MatchString(rejectLine) || reRejectPython.MatchString(rejectLine) || reRejectRuby.MatchString(rejectLine) {
+		if reRejectJS.MatchString(rejectLine) ||
+			reRejectGo.MatchString(rejectLine) ||
+			reRejectPython.MatchString(rejectLine) ||
+			reRejectRuby.MatchString(rejectLine) ||
+			reRejectSQL.MatchString(rejectLine) {
 			return false
 		}
 
