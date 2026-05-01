@@ -71,7 +71,7 @@ func IsPostgreSQL(src string) bool {
 
 	// SQLite-specific rejects
 	reRejectSQLite := regexp.MustCompile(`(?i)\b(AUTOINCREMENT|WITHOUT\s+ROWID)\b`)
-	reRejectSQLiteStmt := regexp.MustCompile(`(?i)^\s*(PRAGMA|ATTACH|DETACH|REINDEX)\b`)
+	reRejectSQLiteStmt := regexp.MustCompile(`(?i)^\s*(PRAGMA|ATTACH|DETACH)\b`)
 
 	anyNonBlank := false
 	inBlockComment := false

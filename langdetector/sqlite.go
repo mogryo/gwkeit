@@ -108,8 +108,6 @@ func IsSQLite(src string) bool {
 
 		if isSQLStatement {
 			hasSQLStatement = true
-			// A SELECT/INSERT/UPDATE/DELETE with no dialect-specific tokens is still
-			// counted as SQLite-specific when no PG tokens are present.
 			if reSelect.MatchString(trim) || reInsert.MatchString(trim) ||
 				reUpdate.MatchString(trim) || reDelete.MatchString(trim) {
 				hasSQLiteSpecific = true
